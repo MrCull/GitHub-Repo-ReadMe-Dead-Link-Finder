@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/DeadLinkFinderConsole/bin/Debug/netcoreapp3.1
+/DeadLinkFinderConsole/obj
+/DeadLinkFinderConsoleTest/bin/Debug/netcoreapp3.1
+/DeadLinkFinderConsoleTest/obj
+/GitHubRepoFinder/bin/Debug/netcoreapp3.1
+/GitHubRepoFinder/obj
+/WebsiteLinksChecker/bin/Debug/netcoreapp3.1
+/WebsiteLinksChecker/obj
+/WebsiteLinksCheckerTest/bin/Debug/netcoreapp3.1
+/WebsiteLinksCheckerTest/obj
