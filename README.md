@@ -1,4 +1,4 @@
-# GitHub-Repo-ReadMe-Dead-Link-Finder
+# GitHub Repo RREADME.md Dead Link Finder
 A program which will search for Repos with dead links in their README.md files.
 
 It is surprising how many active GitHub repos have bad links in their README.md files!
