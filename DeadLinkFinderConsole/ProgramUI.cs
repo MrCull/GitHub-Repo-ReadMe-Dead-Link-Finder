@@ -218,7 +218,7 @@ namespace DeadLinkFinderConsole
         {
             foreach (KeyValuePair<string, HttpResponseMessage> linkCheckerResult in httpResponseMessages)
             {
-                string httpResponseMessageLog = $"Status code [{linkCheckerResult.Value.StatusCode:D}:{linkCheckerResult.Value.StatusCode}] - Link [{linkCheckerResult.Key}]";
+                string httpResponseMessageLog = $"Status code [{linkCheckerResult.Value.StatusCode:D}:{linkCheckerResult.Value.StatusCode}] - Link: {linkCheckerResult.Key}";
                 streamWriter.WriteLine(httpResponseMessageLog);
             }
         }
