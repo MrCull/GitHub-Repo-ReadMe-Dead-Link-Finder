@@ -31,41 +31,44 @@ namespace DeadLinkFinderWeb.Controllers
         }
 
 
-        public IActionResult Search(RepoChecker repoChecker)
+        public IActionResult Search(RepoCheckerModel repoChecker)
         {
             var gitHubClient = new GitHubClient(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes-web"));
             var uriFinder = new GitHubActiveReposFinder(gitHubClient);
 
-            var searchRepositoriesRequest = new SearchRepositoriesRequest
-            {
-                SortField = (RepoSearchSort)repoChecker.SearchSort,
-                Order = (SortDirection)repoChecker.SortAscDsc,
-            };
-
-            if (repoChecker.MinStar.HasValue && repoChecker.MinStar >= 0)
-            {
-                searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(repoChecker.MinStar.Value);
-            }
-            else
-            {
-                searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
-            }
-
-            if (repoChecker.UpdatedAfter.HasValue)
-            {
-                searchRepositoriesRequest.Updated = DateRange.Between(repoChecker.UpdatedAfter.Value, DateTimeOffset.UtcNow);
-            }
-
-            searchRepositoriesRequest.User = repoChecker.User;
-
-            if (string.IsNullOrWhiteSpace(repoChecker.SingleRepoUri))
-            {
-                IEnumerable<Uri> uris = uriFinder.GetUris(repoChecker.NumberOfReposToSearchFor, searchRepositoriesRequest);
-                repoChecker.Uris.AddRange(uris);
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(repoChecker.SingleRepoUri))
             {
                 repoChecker.Uris.Add(new Uri(repoChecker.SingleRepoUri));
+            }
+            else
+            {
+                var searchRepositoriesRequest = new SearchRepositoriesRequest
+                {
+                    SortField = (RepoSearchSort)repoChecker.SearchSort,
+                    Order = (SortDirection)repoChecker.SortAscDsc,
+                };
+
+                if (repoChecker.MinStar.HasValue && repoChecker.MinStar >= 0)
+                {
+                    searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(repoChecker.MinStar.Value);
+                }
+                else
+                {
+                    searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
+                }
+
+                if (repoChecker.UpdatedAfter.HasValue)
+                {
+                    searchRepositoriesRequest.Updated = DateRange.Between(repoChecker.UpdatedAfter.Value, DateTimeOffset.UtcNow);
+                }
+
+                searchRepositoriesRequest.User = repoChecker.User;
+
+                int maxRepos = repoChecker.NumberOfReposToSearchFor ?? 5;
+
+                IEnumerable<Uri> uris = uriFinder.GetUris(maxRepos, searchRepositoriesRequest);
+                repoChecker.Uris.AddRange(uris);
+
             }
 
             return View("Index", repoChecker);
