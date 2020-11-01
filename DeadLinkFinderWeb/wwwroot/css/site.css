@@ -69,3 +69,9 @@ body {
   white-space: nowrap;
   line-height: 60px; /* Vertically center the text there */
 }
+
+tr.table-slim > td {
+    height: 1px;
+    padding: 0;
+}
+
