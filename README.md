@@ -1,6 +1,8 @@
 # GitHub Repo README.md Dead Link Finder
 A program which will search for Repos with dead links in their README.md files.
 
+You can now check your own Repos via the web form: https://githubreporeadmelinkchecker.azurewebsites.net/Home/
+
 It is surprising how many active GitHub repos have bad links in their README.md files!
 
 If you have reached this Repo page because it has found a bad link in one of your repo's README.md files then please consider showing you appreciation by giving this Repo a Star
