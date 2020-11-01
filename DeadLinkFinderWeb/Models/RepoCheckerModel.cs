@@ -4,12 +4,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DeadLinkFinderWeb.Models
 {
-    public class RepoChecker
+    public class RepoCheckerModel
     {
-        [Range(0, 25, ErrorMessage = "Enter number between 0 and 25")]
-        [Display(Name = "Maximum number of Repos")]
-        public int NumberOfReposToSearchFor { get; set; }
+        //[Range(0, 25, ErrorMessage = "Enter number between 0 and 25")]
+        [Display(Name = "Max Repos to check")]
+        public int? NumberOfReposToSearchFor { get; set; }
 
+        [Url]
         [Display(Name = "Single Repo check URI")]
         public string SingleRepoUri { get; set; }
 
@@ -19,7 +20,7 @@ namespace DeadLinkFinderWeb.Models
         [Display(Name = "Repos update after")]
         public DateTime? UpdatedAfter { get; set; }
 
-        [Display(Name = "Repos belonging to User")]
+        [Display(Name = "Repos belonging to User / Group")]
         public string User { get; set; }
 
         [Display(Name = "Sort Field")]
@@ -30,7 +31,7 @@ namespace DeadLinkFinderWeb.Models
 
         public List<Uri> Uris;
 
-        public RepoChecker()
+        public RepoCheckerModel()
         {
             Uris = new List<Uri>();
         }

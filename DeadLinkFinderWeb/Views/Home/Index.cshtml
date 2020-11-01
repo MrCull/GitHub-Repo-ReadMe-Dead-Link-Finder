@@ -1,5 +1,5 @@
 ﻿@using System.Text.RegularExpressions
-@model DeadLinkFinderWeb.Models.RepoChecker
+@model DeadLinkFinderWeb.Models.RepoCheckerModel
 
 @{
     ViewData["Title"] = "Search Repos' readme...";
@@ -18,18 +18,18 @@
 
             <div class="form-group">
                 <label asp-for="SingleRepoUri" class="control-label"></label>
-                <input asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
+                <input id="serchFormUri" asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
                 <span asp-validation-for="SingleRepoUri" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="User" class="control-label"></label>
-                <input asp-for="User" class="form-control" title="e.g. mrcull" />
+                <input asp-for="User" class="form-control" title="e.g. google" />
                 <span asp-validation-for="User" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="NumberOfReposToSearchFor" class="control-label"></label>
-                <input asp-for="NumberOfReposToSearchFor" class="form-control" title="e.g. 10" />
+                <input id="serchFormNumberOfReposToSearchFor" asp-for="NumberOfReposToSearchFor" class="form-control" placeholder="5" title="e.g. 10" />
                 <span asp-validation-for="NumberOfReposToSearchFor" class="text-danger"></span>
             </div>
 
@@ -45,16 +45,16 @@
             </div>
             <div class="form-group">
                 <label asp-for="SearchSort" class="control-label"></label>
-                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoChecker.RepoSearchSort)).OrderBy(em => em.Value)" class="form-control"></select>
+                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.RepoSearchSort)).OrderByDescending(em => em.Value)" class="form-control"></select>
                 <span asp-validation-for="SearchSort" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="SortAscDsc" class="control-label"></label>
-                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoChecker.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
+                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
                 <span asp-validation-for="SortAscDsc" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Search for Repo(s)" class="btn btn-primary" />
+                <input id="serchFormButton" type="submit" value="Search for Repo(s)" class="btn btn-primary" />
             </div>
             <div class="form-group">
                 <a asp-action="Index">Reset Search</a>
@@ -132,7 +132,6 @@
                         " </tr> " + body + " </table>"
                     ).appendTo('#' + ConvertUriToValidId(uri));
 
-
                     document.getElementById('lb' + ConvertUriToValidId(uri)).style.visibility = "hidden";
                     document.getElementById('img' + ConvertUriToValidId(uri)).style.visibility = "hidden";
 
@@ -144,7 +143,7 @@
         }
 
                 function ConvertUriToValidId(uri) {
-                return uri.replace(/\W/g, '');
+                return uri.replace(/[^A-Za-z0-9]/gi, '');
         }
 
 
@@ -164,6 +163,7 @@
             </script>
         }
     }
+
 
 }
 
