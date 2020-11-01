@@ -13,3 +13,5 @@
 /WebsiteLinksChecker/obj
 /WebsiteLinksCheckerTest/bin/Debug/netcoreapp3.1
 /WebsiteLinksCheckerTest/obj
+/DeadLinkFinderWeb/bin/Debug/netcoreapp3.1
+/DeadLinkFinderWeb/obj

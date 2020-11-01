@@ -1,0 +1,171 @@
+﻿@using System.Text.RegularExpressions
+@model DeadLinkFinderWeb.Models.RepoChecker
+
+@{
+    ViewData["Title"] = "Search Repos' readme...";
+}
+
+<div class="text-center">
+    <h2 class="display-4">Search Repos' readme...</h2>
+</div>
+
+<h4>Repo Search</h4>
+<hr />
+<div class="row">
+    <div class="col-md-3">
+        <form asp-controller="Home" asp-action="Search" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="SingleRepoUri" class="control-label"></label>
+                <input asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
+                <span asp-validation-for="SingleRepoUri" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="User" class="control-label"></label>
+                <input asp-for="User" class="form-control" title="e.g. mrcull" />
+                <span asp-validation-for="User" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="NumberOfReposToSearchFor" class="control-label"></label>
+                <input asp-for="NumberOfReposToSearchFor" class="form-control" title="e.g. 10" />
+                <span asp-validation-for="NumberOfReposToSearchFor" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MinStar" class="control-label"></label>
+                <input asp-for="MinStar" class="form-control" placeholder="0" />
+                <span asp-validation-for="MinStar" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdatedAfter" class="control-label"></label>
+                <input asp-for="UpdatedAfter" class="form-control" />
+                <span asp-validation-for="UpdatedAfter" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SearchSort" class="control-label"></label>
+                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoChecker.RepoSearchSort)).OrderBy(em => em.Value)" class="form-control"></select>
+                <span asp-validation-for="SearchSort" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SortAscDsc" class="control-label"></label>
+                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoChecker.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
+                <span asp-validation-for="SortAscDsc" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Search for Repo(s)" class="btn btn-primary" />
+            </div>
+            <div class="form-group">
+                <a asp-action="Index">Reset Search</a>
+            </div>
+        </form>
+    </div>
+
+
+    @if (Model != null)
+    {
+
+        <div class="col-sm-9">
+            @foreach (var uri in Model.Uris)
+            {
+                <div id="@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                    <img src='../images/checking-icon.gif' alt='ok' width="16" height="16" id="@Regex.Replace("img" + uri.ToString(), @"[^A-Za-z0-9]+", "")" />
+                    <label id="@Regex.Replace("lb" + uri.ToString(), @"[^A-Za-z0-9]+", "")">Found Repo <b>[@uri]</b></label>
+                </div>
+
+
+            }
+
+            <a asp-action="Index">Reset Search</a>
+        </div>
+
+    }
+
+
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+            function CheckRepo(uri) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CheckRepo")',
+                data: { 'uri': uri },
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    var ok = 0;
+                    var bad = 0;
+                    var body = "";
+                    $.each(data, function (key, value) {
+
+                        body += " <tr class='table-slim'>";
+
+                        if (value == 200) {
+                            body +=  "<td nowrap><img src='../images/ok-icon.png' alt='ok' /></td>"
+                            ok = ok + 1;
+                        }
+                        else {
+                            bad = bad + 1
+                            body +=  "<td nowrap><img src='../images/error-icon.png' alt='bad' /></td>"
+                        }
+
+                        body +=  "<td  nowrap>Http Status Code: " + value + "</td>" +
+                            "<td ><a href='" + key + "'>" + key + "</a></td>" +
+                            "</tr>";
+
+                    });
+
+
+                    thImage = 'ok-icon.png';
+                    if (bad > 0) {
+                        thImage = 'error-icon.png';
+                    }
+
+                    $("<table class='table'>").html(
+                        "<tr >" +
+                        "<th colspan='1'><img src='../images/" + thImage + "' alt='result' width='40' height='40'/></th>" +
+                        "<th colspan='2' class='align-middle'><a href='" + uri + "'>" + uri + "</a> Bad links[" + bad + "] Ok links[" + ok + "]</th> " +
+                        " </tr> " + body + " </table>"
+                    ).appendTo('#' + ConvertUriToValidId(uri));
+
+
+                    document.getElementById('lb' + ConvertUriToValidId(uri)).style.visibility = "hidden";
+                    document.getElementById('img' + ConvertUriToValidId(uri)).style.visibility = "hidden";
+
+                },
+                error: function () {
+                    document.getElementById('lb' + ConvertUriToValidId(uri)).innerHTML = 'Error checking  Repo: ';
+                }
+            });
+        }
+
+                function ConvertUriToValidId(uri) {
+                return uri.replace(/\W/g, '');
+        }
+
+
+
+
+    </script>
+
+
+
+    @if (Model != null)
+    {
+        @foreach (var uri in Model.Uris)
+        {
+            <script>
+                 document.getElementById('@Regex.Replace("lb" + uri.ToString(), @"[^A-Za-z0-9]+", "")').innerHTML = 'Checking Repo <a href="@uri">@uri</a></b>';
+                CheckRepo('@uri');
+            </script>
+        }
+    }
+
+}
+
+
+
