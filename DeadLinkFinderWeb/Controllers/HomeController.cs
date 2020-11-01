@@ -57,9 +57,9 @@ namespace DeadLinkFinderWeb.Controllers
                     searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
                 }
 
-                if (repoChecker.UpdatedAfter.HasValue)
+                if (repoChecker.UpdatedAfter.HasValue && repoChecker.UpdatedAfter < DateTime.UtcNow)
                 {
-                    searchRepositoriesRequest.Updated = DateRange.Between(repoChecker.UpdatedAfter.Value, DateTimeOffset.UtcNow);
+                    searchRepositoriesRequest.Updated = DateRange.Between(repoChecker.UpdatedAfter.Value.ToUniversalTime(), DateTimeOffset.UtcNow);
                 }
 
                 searchRepositoriesRequest.User = repoChecker.User;
