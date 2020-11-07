@@ -82,7 +82,7 @@ namespace DeadLinkFinderWeb.Controllers
         public JsonResult CheckRepo(string uri)
         {
 
-            Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinksAsync(new Uri(uri)).Result;
+            Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(new Uri(uri));
 
             var linkWithStatusCode = new Dictionary<string, HttpStatusCode>();
             foreach (var item in linkWithResponse)
@@ -100,6 +100,14 @@ namespace DeadLinkFinderWeb.Controllers
             List<Uri> linksFromRepo = _linkGetter.GetUrisOutOfPageFromMainUri(new Uri(uri));
 
             return Json(linksFromRepo.Select(uri => uri.AbsoluteUri));
+        }
+
+        public JsonResult CheckLink(string uri)
+        {
+
+            HttpResponseMessage linksFromRepo = _linkChecker.GetHttpResponseAsync(new Uri(uri)).Result;
+
+            return Json(linksFromRepo.StatusCode);
         }
 
 

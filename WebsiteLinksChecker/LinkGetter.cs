@@ -11,12 +11,13 @@ namespace WebsiteLinksChecker
     public class LinkGetter : ILinkGetter
     {
         private readonly HttpClient _httpClient;
-        private readonly string _elementId;
+        public string ElementId { get; private set; }
+
 
         public LinkGetter(HttpClient httpClient, string elementId)
         {
             _httpClient = httpClient;
-            _elementId = elementId;
+            ElementId = elementId;
         }
 
         public List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage)
@@ -93,12 +94,12 @@ namespace WebsiteLinksChecker
             var htmlDocumente = new HtmlDocument();
             htmlDocumente.LoadHtml(rawHtml);
 
-            if (_elementId != null)
+            if (ElementId != null)
             {
-                HtmlNode documentElement = htmlDocumente.GetElementbyId(_elementId);
+                HtmlNode documentElement = htmlDocumente.GetElementbyId(ElementId);
                 if (documentElement == null)
                 {
-                    throw new ElementIdNotFoundException($"_elementId [{_elementId}] not found in document");
+                    throw new ElementIdNotFoundException($"ElementId [{ElementId}] not found in document");
                 }
                 htmlDocumente.LoadHtml(documentElement.InnerHtml);
             }
