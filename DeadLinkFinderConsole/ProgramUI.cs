@@ -52,17 +52,17 @@ namespace DeadLinkFinderConsole
                     DisplayGitHubSearchRequestParameters(_searchRepositoriesRequest);
                 }
 
-                IEnumerable<Uri> uris = _uriFinder.GetUris(numberOfGitHubPagesToCheck, _searchRepositoriesRequest);
+                IEnumerable<Uri> repoUris = _uriFinder.GetUris(numberOfGitHubPagesToCheck, _searchRepositoriesRequest);
 
                 LogGitHubRateLimitFromThisConnection(_uriFinder.GetRateLimit());
 
 
-                foreach (Uri uri in uris)
+                foreach (Uri repoUri in repoUris)
                 {
-                    Console.WriteLine($"Checking: {uri}");
-                    Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinksAsync(uri);
+                    Console.WriteLine($"Checking: {repoUri}");
+                    Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinksAsync(repoUri);
                     //SaveOutput(uri, linkWithResponse, _configuration["outputDirectory"]);
-                    SaveOutput(uri, linkWithResponse, _outputDirectory);
+                    SaveOutput(repoUri, linkWithResponse, _outputDirectory);
                 }
 
                 Console.WriteLine();
