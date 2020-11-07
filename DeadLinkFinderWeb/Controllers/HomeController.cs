@@ -78,7 +78,7 @@ namespace DeadLinkFinderWeb.Controllers
         public JsonResult CheckRepo(string uri)
         {
 
-            LinkChecker linkChecker = new LinkChecker(new HttpClient(), "readme");
+            LinkChecker linkChecker = new LinkChecker(new HttpClient(), "readme", new LinkGetter());
             Dictionary<string, HttpResponseMessage> linkWithResponse = linkChecker.CheckLinksAsync(new Uri(uri)).Result;
 
             var linkWithStatusCode = new Dictionary<string, HttpStatusCode>();

@@ -33,7 +33,8 @@ namespace DeadLinkFinderConsole
                 Order = SortDirection.Descending,
             });
 
-            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), "readme"));
+            services.AddTransient<ILinkGetter, LinkGetter>();
+            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), "readme", new LinkGetter()));
             services.AddTransient<ProgramUI, ProgramUI>();
             services.AddTransient<IFileNameFromUri, FileNameFromUri>();
 
