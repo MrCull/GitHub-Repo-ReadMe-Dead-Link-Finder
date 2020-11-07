@@ -6,7 +6,7 @@ namespace DeadLinkFinderWeb.Models
 {
     public class RepoCheckerModel
     {
-        //[Range(0, 25, ErrorMessage = "Enter number between 0 and 25")]
+        [Range(0, 25, ErrorMessage = "Enter number between 0 and 25")]
         [Display(Name = "Max Repos to check")]
         public int? NumberOfReposToSearchFor { get; set; }
 

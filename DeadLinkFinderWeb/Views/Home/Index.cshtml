@@ -5,10 +5,6 @@
     ViewData["Title"] = "Search Repos' readme...";
 }
 
-<div class="text-center">
-    <h2 class="display-4">Search Repos' readme...</h2>
-</div>
-
 <h4>Repo Search</h4>
 <hr />
 <div class="row">
@@ -65,21 +61,29 @@
 
     @if (Model != null)
     {
-
         <div class="col-sm-9">
-            @foreach (var uri in Model.Uris)
-            {
-                <div id="@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
-                    <img src='../images/checking-icon.gif' alt='ok' width="16" height="16" id="@Regex.Replace("img" + uri.ToString(), @"[^A-Za-z0-9]+", "")" />
-                    <label id="@Regex.Replace("lb" + uri.ToString(), @"[^A-Za-z0-9]+", "")">Found Repo <b>[@uri]</b></label>
+            <div class="container">
+                <div id="accordion">
+                    @foreach (var uri in Model.Uris)
+                    {
+                        <div class="card">
+                            <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                                <a data-toggle="collapse" href="@uri">@uri</a>
+                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class="fa fa-plus"></i></a>
+                            </div>
+                            <div id='collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")' class="collapse show" data-parent="#accordion">
+                                <div class="card-body" id="card_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                                    <img id="checking_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")" src='../images/checking-icon.gif' alt='icon' width='25' height='25' />
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+
+                    <a asp-action="Index">Reset Search</a>
                 </div>
-
-
-            }
-
-            <a asp-action="Index">Reset Search</a>
+            </div>
         </div>
-
     }
 
 
@@ -104,7 +108,7 @@
                     $.each(data, function (key, value) {
 
                         body += " <tr class='table-slim'>";
-                        body += "<td nowrap><img src='../images/";
+                        body += "<td nowrap ><img src='../images/";
 
                         if (value == 200) {
                             body += "ok-icon.png";
@@ -121,8 +125,8 @@
 
                         body += "' alt='icon' width='25' height='25'/></td>";
 
-                        body +=  "<td  nowrap>Http Status Code: " + value + "</td>" +
-                            "<td> <a href='" + key + "'>" + key + " </a> </td>" +
+                        body +=  "<td nowrap> Http Status Code: " + value + " </td>" +
+                            "<td ><a href='" + key + "'>" + key + " </a> </td>" +
                             "</tr>";
 
                     });
@@ -135,16 +139,21 @@
                     else if (warning > 0) {
                         thImage = 'warning-icon.jpg';
                     }
+                    else {
+                        $('#collapse_' + ConvertUriToValidId(uri)).collapse()
+                    }
 
-                    $("<table class='table'>").html(
-                        "<tr >" +
-                        "<th colspan='1'><img src='../images/" + thImage + "' alt='result' width='40' height='40'/></th>" +
-                        "<th colspan='2' class='align-middle'><a href='" + uri + "'>" + uri + "</a> Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</th> " +
-                        " </tr> " + body + " </table>"
-                    ).appendTo('#' + ConvertUriToValidId(uri));
 
-                    document.getElementById('lb' + ConvertUriToValidId(uri)).style.visibility = "hidden";
-                    document.getElementById('img' + ConvertUriToValidId(uri)).style.visibility = "hidden";
+                    $("#checking_" + ConvertUriToValidId(uri) ).remove();
+
+
+                    $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_head_' + ConvertUriToValidId(uri));
+                    $(" <i>Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</i>").appendTo('#card_head_' + ConvertUriToValidId(uri));
+
+
+                    $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
+
+
 
                 },
                 error: function () {
@@ -153,11 +162,28 @@
             });
         }
 
-                function ConvertUriToValidId(uri) {
+
+
+       function ConvertUriToValidId(uri) {
                 return uri.replace(/[^A-Za-z0-9]/gi, '');
         }
 
 
+
+
+            $(document).ready(function(){
+        // Add minus icon for collapse element which is open by default
+        $(".collapse.show").each(function(){
+        	$(this).prev(".card-header").find(".fa").addClass("fa-minus").removeClass("fa-plus");
+        });
+
+        // Toggle plus minus icon on show hide of collapse element
+        $(".collapse").on('show.bs.collapse', function(){
+        	$(this).prev(".card-header").find(".fa").removeClass("fa-plus").addClass("fa-minus");
+        }).on('hide.bs.collapse', function(){
+        	$(this).prev(".card-header").find(".fa").removeClass("fa-minus").addClass("fa-plus");
+        });
+    });
 
 
     </script>
@@ -169,7 +195,6 @@
         @foreach (var uri in Model.Uris)
         {
             <script>
-                 document.getElementById('@Regex.Replace("lb" + uri.ToString(), @"[^A-Za-z0-9]+", "")').innerHTML = 'Checking Repo <a href="@uri">@uri</a></b>';
                 CheckRepo('@uri');
             </script>
         }

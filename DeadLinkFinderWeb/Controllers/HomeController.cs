@@ -69,6 +69,11 @@ namespace DeadLinkFinderWeb.Controllers
                 _searchRepositoriesRequest.User = repoChecker.User;
 
                 int maxRepos = repoChecker.NumberOfReposToSearchFor ?? 5;
+                // prevent to many repos to search
+                if (maxRepos > 25)
+                {
+                    maxRepos = 2;
+                }
 
                 IEnumerable<Uri> uris = _gitHubActiveReposFinder.GetUris(maxRepos, _searchRepositoriesRequest);
                 repoChecker.Uris.AddRange(uris);
