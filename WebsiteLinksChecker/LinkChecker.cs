@@ -51,7 +51,8 @@ namespace WebsiteLinksChecker
                 try
                 {
                     HtmlDocument htmlDocumente = GetHtmlDocument(rawHtml);
-                    results = CheckLinks(uri, htmlDocumente);
+                    List<Uri> urisFromWithinPageOfMainUri = GetUrisOutOfPageFromMainUri(uri, htmlDocumente);
+                    results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
                 }
                 catch (ElementIdNotFoundException exception)
                 {
@@ -73,14 +74,12 @@ namespace WebsiteLinksChecker
             return results;
         }
 
-        private Dictionary<string, HttpResponseMessage> CheckLinks(Uri uriForMainPage, HtmlDocument htmlDocumente)
+        private List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage, HtmlDocument htmlDocumente)
         {
-            var results = new Dictionary<string, HttpResponseMessage>();
+            var urisFoundWithinPageFromMainUri = new List<Uri>();
 
             try
             {
-                var checkedLinks = new List<string>();
-
                 var taskList = new Dictionary<string, Task<HttpResponseMessage>>();
 
                 HtmlNodeCollection htmlDocumentes = htmlDocumente.DocumentNode.SelectNodes("//a[@href]");
@@ -100,33 +99,53 @@ namespace WebsiteLinksChecker
 
                         if (Uri.IsWellFormedUriString(uriWithinPage, UriKind.RelativeOrAbsolute) && !uriWithinPage.Contains("mailto"))
                         {
-                            if (!checkedLinks.Contains(uriWithinPage))
+                            if (!urisFoundWithinPageFromMainUri.Contains(new Uri(uriWithinPage)))
                             {
-                                checkedLinks.Add(uriWithinPage);
-
-                                try
-                                {
-                                    Task<HttpResponseMessage> response = GetHttpResponseAsync(uriWithinPage);
-                                    taskList.Add(uriWithinPage, response);
-
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
-                                }
+                                urisFoundWithinPageFromMainUri.Add(new Uri(uriWithinPage));
                             }
                         }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return urisFoundWithinPageFromMainUri;
+        }
+
+        private Dictionary<string, HttpResponseMessage> CheckUrisHttpStatus(List<Uri> urisToCheck)
+        {
+            var results = new Dictionary<string, HttpResponseMessage>();
+
+            try
+            {
+                var taskList = new Dictionary<string, Task<HttpResponseMessage>>();
+
+                foreach (Uri uriTocheck in urisToCheck)
+                {
+
+                    try
+                    {
+                        Task<HttpResponseMessage> response = GetHttpResponseAsync(uriTocheck);
+                        taskList.Add(uriTocheck.AbsoluteUri, response);
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
                     }
                 }
 
                 Task.WaitAll(taskList.Values.ToArray());
 
-                foreach (string checkedLink in checkedLinks)
+                foreach (Uri checkedUri in urisToCheck)
                 {
-                    HttpResponseMessage httpResponseMessage = taskList[checkedLink].Result;
+                    HttpResponseMessage httpResponseMessage = taskList[checkedUri.AbsoluteUri].Result;
                     if (httpResponseMessage != null)
                     {
-                        results.Add(checkedLink, httpResponseMessage);
+                        results.Add(checkedUri.AbsoluteUri, httpResponseMessage);
                     }
                 }
             }
@@ -139,16 +158,16 @@ namespace WebsiteLinksChecker
         }
 
 
-        private async Task<HttpResponseMessage> GetHttpResponseAsync(string urlWithinPage)
+        private async Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage)
         {
             HttpResponseMessage httpResponseMessage = null;
             try
             {
-                httpResponseMessage = await _httpClient.GetAsync(urlWithinPage);
+                httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
             }
             catch (HttpRequestException hre)
             {
-                Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {urlWithinPage}");
+                Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {uriWithinPage}");
             }
             catch (Exception e)
             {
