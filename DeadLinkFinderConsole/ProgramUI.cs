@@ -60,7 +60,7 @@ namespace DeadLinkFinderConsole
                 foreach (Uri repoUri in repoUris)
                 {
                     Console.WriteLine($"Checking: {repoUri}");
-                    Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinksAsync(repoUri);
+                    Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(repoUri);
                     SaveOutput(repoUri, linkWithResponse, _outputDirectory);
                 }
 

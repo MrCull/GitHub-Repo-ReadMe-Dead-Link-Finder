@@ -5,6 +5,8 @@ namespace WebsiteLinksChecker
 {
     public interface ILinkGetter
     {
+        string ElementId { get; }
+
         List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage);
     }
 }

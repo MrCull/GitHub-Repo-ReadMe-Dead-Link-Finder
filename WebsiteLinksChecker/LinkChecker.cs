@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebsiteLinksChecker
@@ -19,44 +17,16 @@ namespace WebsiteLinksChecker
         {
             _httpClient = httpClient;
             _linkGetter = linkGetter;
+            ElementId = linkGetter.ElementId;
         }
 
-        public async Task<Dictionary<string, HttpResponseMessage>> CheckLinksAsync(Uri uri)
+        public Dictionary<string, HttpResponseMessage> CheckLinks(Uri uri)
         {
             var results = new Dictionary<string, HttpResponseMessage>();
             try
             {
-                HttpResponseMessage httpResponseMessage;
-                HttpStatusCode httpStatusCode = HttpStatusCode.OK;
-                int loopLimit = 10;
-                int numberOfLoops = 0;
-                do
-                {
-                    numberOfLoops = +1;
-                    if (numberOfLoops > loopLimit)
-                    {
-                        throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uri}");
-                    }
-
-                    httpResponseMessage = await _httpClient.GetAsync(uri);
-                    if (httpStatusCode == HttpStatusCode.TooManyRequests)
-                    {
-                        Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uri} so sleeping for 10 seconds before trying again");
-                        Thread.Sleep(10000);
-                    }
-                } while (httpStatusCode == HttpStatusCode.TooManyRequests);
-
-                string rawHtml = await httpResponseMessage.Content.ReadAsStringAsync();
-
-                try
-                {
-                    List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri);
-                    results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
-                }
-                catch (ElementIdNotFoundException exception)
-                {
-                    Console.WriteLine($"For {uri} {exception.Message}");
-                }
+                List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri);
+                results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
 
             }
             catch (HttpRequestException hre)
@@ -117,7 +87,7 @@ namespace WebsiteLinksChecker
         }
 
 
-        private async Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage)
+        public async Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage)
         {
             HttpResponseMessage httpResponseMessage = null;
             try
@@ -137,5 +107,6 @@ namespace WebsiteLinksChecker
 
             return httpResponseMessage;
         }
+
     }
 }

@@ -7,8 +7,8 @@ namespace WebsiteLinksChecker
 {
     public interface ILinkChecker
     {
-        Task<Dictionary<string, HttpResponseMessage>> CheckLinksAsync(Uri urlForMainPage);
-
         string ElementId { get; }
+        Dictionary<string, HttpResponseMessage> CheckLinks(Uri uri);
+        Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage);
     }
 }
