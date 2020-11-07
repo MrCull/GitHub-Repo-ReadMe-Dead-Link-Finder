@@ -12,13 +12,15 @@ namespace WebsiteLinksChecker
     public class LinkChecker : ILinkChecker
     {
         private readonly HttpClient _httpClient;
+        private readonly ILinkGetter _linkGetter;
 
         public string ElementId { get; private set; }
 
-        public LinkChecker(HttpClient httpClient, string elementId)
+        public LinkChecker(HttpClient httpClient, string elementId, ILinkGetter linkGetter)
         {
             _httpClient = httpClient;
             ElementId = elementId;
+            _linkGetter = linkGetter;
         }
 
         public async Task<Dictionary<string, HttpResponseMessage>> CheckLinksAsync(Uri uri)
@@ -51,7 +53,7 @@ namespace WebsiteLinksChecker
                 try
                 {
                     HtmlDocument htmlDocumente = GetHtmlDocument(rawHtml);
-                    List<Uri> urisFromWithinPageOfMainUri = GetUrisOutOfPageFromMainUri(uri, htmlDocumente);
+                    List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri, htmlDocumente);
                     results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
                 }
                 catch (ElementIdNotFoundException exception)
@@ -74,46 +76,6 @@ namespace WebsiteLinksChecker
             return results;
         }
 
-        private List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage, HtmlDocument htmlDocumente)
-        {
-            var urisFoundWithinPageFromMainUri = new List<Uri>();
-
-            try
-            {
-                var taskList = new Dictionary<string, Task<HttpResponseMessage>>();
-
-                HtmlNodeCollection htmlDocumentes = htmlDocumente.DocumentNode.SelectNodes("//a[@href]");
-
-                // If there are no links then htmlDocumentes will be null
-                if (htmlDocumentes != null)
-                {
-                    foreach (HtmlNode link in htmlDocumentes)
-                    {
-                        string uriWithinPage = link.Attributes["href"].Value;
-
-                        // If it's relative uri then combine with host path
-                        if (uriWithinPage.StartsWith(@"/"))
-                        {
-                            uriWithinPage = uriForMainPage.Scheme + Uri.SchemeDelimiter + uriForMainPage.Host + uriWithinPage;
-                        }
-
-                        if (Uri.IsWellFormedUriString(uriWithinPage, UriKind.RelativeOrAbsolute) && !uriWithinPage.Contains("mailto"))
-                        {
-                            if (!urisFoundWithinPageFromMainUri.Contains(new Uri(uriWithinPage)))
-                            {
-                                urisFoundWithinPageFromMainUri.Add(new Uri(uriWithinPage));
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            return urisFoundWithinPageFromMainUri;
-        }
 
         private Dictionary<string, HttpResponseMessage> CheckUrisHttpStatus(List<Uri> urisToCheck)
         {
