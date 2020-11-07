@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using WebsiteLinksChecker;
@@ -14,10 +15,14 @@ namespace DeadLinkFinderWeb.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ILinkGetter _linkGetter;
+        private readonly ILinkChecker _linkChecker;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ILinkGetter linkGetter, ILinkChecker linkChecker)
         {
             _logger = logger;
+            _linkGetter = linkGetter;
+            _linkChecker = linkChecker;
         }
 
         public IActionResult Index()
@@ -78,8 +83,7 @@ namespace DeadLinkFinderWeb.Controllers
         public JsonResult CheckRepo(string uri)
         {
 
-            LinkChecker linkChecker = new LinkChecker(new HttpClient(), "readme", new LinkGetter());
-            Dictionary<string, HttpResponseMessage> linkWithResponse = linkChecker.CheckLinksAsync(new Uri(uri)).Result;
+            Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinksAsync(new Uri(uri)).Result;
 
             var linkWithStatusCode = new Dictionary<string, HttpStatusCode>();
             foreach (var item in linkWithResponse)
@@ -90,6 +94,15 @@ namespace DeadLinkFinderWeb.Controllers
             //UriWithResults UriWithResults = new UriWithResults() { Uri = uri, LinksWithStatusCode = linkWithStatusCode };
 
             return Json(linkWithStatusCode);
+        }
+
+
+        public JsonResult GetLinksFromRepo(string uri)
+        {
+
+            List<Uri> linksFromRepo = _linkGetter.GetUrisOutOfPageFromMainUri(new Uri(uri));
+
+            return Json(linksFromRepo.Select (uri => uri.AbsoluteUri));
         }
 
 

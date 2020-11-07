@@ -1,22 +1,31 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebsiteLinksChecker
 {
     public class LinkGetter : ILinkGetter
     {
+        private readonly HttpClient _httpClient;
+        private readonly string _elementId;
 
-        public List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage, HtmlDocument htmlDocumente)
+        public LinkGetter(HttpClient httpClient, string elementId)
+        {
+            _httpClient = httpClient;
+            _elementId = elementId;
+        }
+
+        public List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage)
         {
             var urisFoundWithinPageFromMainUri = new List<Uri>();
 
             try
             {
-                var taskList = new Dictionary<string, Task<HttpResponseMessage>>();
-
+                HtmlDocument htmlDocumente = GetHtmlDocumentFromUri(uriForMainPage).Result;
                 HtmlNodeCollection htmlDocumentes = htmlDocumente.DocumentNode.SelectNodes("//a[@href]");
 
                 // If there are no links then htmlDocumentes will be null
@@ -48,6 +57,53 @@ namespace WebsiteLinksChecker
             }
 
             return urisFoundWithinPageFromMainUri;
+        }
+
+        private async Task<HtmlDocument> GetHtmlDocumentFromUri(Uri uriForMainPage)
+        {
+            HttpResponseMessage httpResponseMessage;
+            HttpStatusCode httpStatusCode = HttpStatusCode.OK;
+            int loopLimit = 10;
+            int numberOfLoops;
+            do
+            {
+                numberOfLoops = +1;
+                if (numberOfLoops > loopLimit)
+                {
+                    throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriForMainPage}");
+                }
+
+                httpResponseMessage = await _httpClient.GetAsync(uriForMainPage);
+                if (httpStatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uriForMainPage} so sleeping for 10 seconds before trying again");
+                    Thread.Sleep(10000);
+                }
+            } while (httpStatusCode == HttpStatusCode.TooManyRequests);
+
+            string rawHtml = await httpResponseMessage.Content.ReadAsStringAsync();
+
+            HtmlDocument htmlDocumente = GetHtmlDocument(rawHtml);
+
+            return htmlDocumente;
+        }
+
+        private HtmlDocument GetHtmlDocument(string rawHtml)
+        {
+            var htmlDocumente = new HtmlDocument();
+            htmlDocumente.LoadHtml(rawHtml);
+
+            if (_elementId != null)
+            {
+                HtmlNode documentElement = htmlDocumente.GetElementbyId(_elementId);
+                if (documentElement == null)
+                {
+                    throw new ElementIdNotFoundException($"_elementId [{_elementId}] not found in document");
+                }
+                htmlDocumente.LoadHtml(documentElement.InnerHtml);
+            }
+
+            return htmlDocumente;
         }
 
     }
