@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using GitHubRepoFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Octokit;
+using System.Net.Http;
+using WebsiteLinksChecker;
 
 namespace DeadLinkFinderWeb
 {
@@ -23,6 +22,21 @@ namespace DeadLinkFinderWeb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<HttpClient, HttpClient>();
+
+            var linkGetter = new LinkGetter(new HttpClient(), "readme");
+            services.AddTransient<ILinkGetter>(s => linkGetter);
+            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), linkGetter));
+
+            var gitHubClient = new GitHubClient(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes-web"));
+            services.AddTransient(s => gitHubClient);
+            services.AddTransient<SearchRepositoriesRequest, SearchRepositoriesRequest>();
+
+            services.AddTransient(s => new GitHubActiveReposFinder(gitHubClient));
+
+
+
+
             services.AddControllersWithViews();
         }
 

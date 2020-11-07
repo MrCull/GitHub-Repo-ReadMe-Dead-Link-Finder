@@ -58,10 +58,10 @@ namespace WebsiteLinksCheckerTest
 
             var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 
-            var linkChecker = new LinkChecker(httpClient, elementId);
+            var linkChecker = new LinkChecker(httpClient, new LinkGetter(httpClient, elementId));
 
             // act
-            Dictionary<string, HttpResponseMessage> results = linkChecker.CheckLinksAsync(mainPageUri).Result;
+            Dictionary<string, HttpResponseMessage> results = linkChecker.CheckLinks(mainPageUri);
 
             // assert
             CollectionAssert.IsNotEmpty(results);
