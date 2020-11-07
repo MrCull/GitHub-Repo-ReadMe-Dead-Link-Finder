@@ -1,5 +1,4 @@
-﻿using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -16,10 +15,9 @@ namespace WebsiteLinksChecker
 
         public string ElementId { get; private set; }
 
-        public LinkChecker(HttpClient httpClient, string elementId, ILinkGetter linkGetter)
+        public LinkChecker(HttpClient httpClient, ILinkGetter linkGetter)
         {
             _httpClient = httpClient;
-            ElementId = elementId;
             _linkGetter = linkGetter;
         }
 
@@ -52,8 +50,7 @@ namespace WebsiteLinksChecker
 
                 try
                 {
-                    HtmlDocument htmlDocumente = GetHtmlDocument(rawHtml);
-                    List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri, htmlDocumente);
+                    List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri);
                     results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
                 }
                 catch (ElementIdNotFoundException exception)
@@ -139,24 +136,6 @@ namespace WebsiteLinksChecker
             }
 
             return httpResponseMessage;
-        }
-
-        private HtmlDocument GetHtmlDocument(string rawHtml)
-        {
-            var htmlDocumente = new HtmlDocument();
-            htmlDocumente.LoadHtml(rawHtml);
-
-            if (ElementId != null)
-            {
-                HtmlNode documentElement = htmlDocumente.GetElementbyId(ElementId);
-                if (documentElement == null)
-                {
-                    throw new ElementIdNotFoundException($"ElementId [{ElementId}] not found in document");
-                }
-                htmlDocumente.LoadHtml(documentElement.InnerHtml);
-            }
-
-            return htmlDocumente;
         }
     }
 }

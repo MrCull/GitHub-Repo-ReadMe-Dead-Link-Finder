@@ -22,7 +22,7 @@ namespace DeadLinkFinderConsole
             services.AddSingleton(new SearchRepositoriesRequest()
             {
                 // lets find a library with over ? stars
-                Stars = Octokit.Range.GreaterThan(1000),
+                Stars = Octokit.Range.GreaterThan(5000),
                 //Stars = Octokit.Range.LessThan(1),
 
                 // check for repos that have been updated between a given date range?
@@ -33,14 +33,15 @@ namespace DeadLinkFinderConsole
                 Order = SortDirection.Descending,
             });
 
-            services.AddTransient<ILinkGetter, LinkGetter>();
-            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), "readme", new LinkGetter()));
+            var linkGetter = new LinkGetter(new HttpClient(), "readme");
+            services.AddTransient<ILinkGetter>(s => linkGetter);
+            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), linkGetter));
+
             services.AddTransient<ProgramUI, ProgramUI>();
             services.AddTransient<IFileNameFromUri, FileNameFromUri>();
 
 
             services.AddSingleton<IUriFinder, GitHubActiveReposFinder>();
-            //services.AddSingleton<IUriFinder, GitHubUrisMockData>();
         }
 
         static void Main(string[] args)

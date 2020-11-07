@@ -61,7 +61,6 @@ namespace DeadLinkFinderConsole
                 {
                     Console.WriteLine($"Checking: {repoUri}");
                     Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinksAsync(repoUri);
-                    //SaveOutput(uri, linkWithResponse, _configuration["outputDirectory"]);
                     SaveOutput(repoUri, linkWithResponse, _outputDirectory);
                 }
 
