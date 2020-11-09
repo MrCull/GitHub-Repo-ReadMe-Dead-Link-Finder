@@ -5,9 +5,9 @@ You can now check your own Repos via the web form: https://githubreporeadmelinkc
 
 It is surprising how many active GitHub repos have bad links in their README.md files!
 
-If you have reached this Repo page because it has found a bad link in one of your repo's README.md files then please consider showing you appreciation by giving this Repo a Star
+If you have reached this Repo page because it has found a bad link in one of your repo's README.md files then please consider showing you appreciation by giving this Repo a Star.
 
-See example of the program in action (it finds a Repo with a bad link in it's README.md after about 30 second)...
+See an example of the program in action (it finds a Repo with a bad link in it's README.md after about 30 seconds)...
 ![Image](deadlink-finder-example.gif)
 
 
@@ -18,7 +18,7 @@ A (user changeable) default of 25 repos are checked per run of the program.
 
 Once a bad link is found the relevant informaiton saved in a file.
 
-Then this information can be manually passed on, likily by creating an Issue in the affected Repo (which is probably why you might have ended up here reading this).
+Then this information can be manually passed on, likely by creating an Issue in the affected Repo (which is probably why you might have ended up here reading this).
 
 
 
@@ -27,4 +27,4 @@ The GitHub API has a Rate Limit to throttle the amount of request from a certain
 
 To increase this limit when using this program you can enter your Personal Access Token: https://github.com/settings/tokens
 
-However this is optional and the program will still work without this althought this limit may get hit.
+However this is optional and the program will still work without this although this limit may get hit.
