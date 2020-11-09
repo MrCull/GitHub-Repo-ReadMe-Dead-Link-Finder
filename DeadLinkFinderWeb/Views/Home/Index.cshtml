@@ -139,7 +139,7 @@
                     else if (warning > 0) {
                         thImage = 'warning-icon.jpg';
                     }
-                    else {
+                    else if (@(Model?.Uris.Count ?? 0) != 1) {
                         $('#collapse_' + ConvertUriToValidId(uri)).collapse()
                     }
 
