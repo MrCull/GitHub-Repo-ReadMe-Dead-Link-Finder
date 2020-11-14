@@ -85,6 +85,12 @@ namespace DeadLinkFinderWeb.Controllers
                     maxRepos = 2;
                 }
 
+                if (repoChecker.IncludeForks)
+                {
+                    _searchRepositoriesRequest.Fork = ForkQualifier.IncludeForks;
+                }
+
+
                 IEnumerable<Uri> uris = _gitHubActiveReposFinder.GetUris(maxRepos, _searchRepositoriesRequest);
                 repoChecker.Uris.AddRange(uris);
 

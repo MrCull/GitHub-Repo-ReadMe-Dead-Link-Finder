@@ -16,6 +16,7 @@ Access the Web UI via this link: https://GitHubReadMeChecker.com
 
 ![Image](deadlink-finder-example2.gif)
 
+Want to include Forkes Repos? Then add the "&IncludeForks=true" into the url
 
 ## Console UI
 
