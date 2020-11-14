@@ -27,7 +27,7 @@ namespace DeadLinkFinderWeb.Models
         public RepoSearchSort? SearchSort { get; set; }
 
         [Display(Name = "Sort Asc/Dsc")]
-        public SortDirection SortAscDsc { get; set; }
+        public SortDirection? SortAscDsc { get; set; }
 
         public List<Uri> Uris;
 
