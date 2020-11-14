@@ -6,7 +6,6 @@ using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using WebsiteLinksChecker;
 
@@ -86,16 +85,16 @@ namespace DeadLinkFinderWeb.Controllers
 
         public JsonResult CheckRepo(string uri)
         {
-
             Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(new Uri(uri));
 
-            var linkWithStatusCode = new Dictionary<string, HttpStatusCode>();
+            var uriStatuses = new List<UriStatus>();
+
             foreach (var item in linkWithResponse)
             {
-                linkWithStatusCode.Add(item.Key, item.Value.StatusCode);
+                uriStatuses.Add(new UriStatus { UriText = item.Key, HttpStatusCode = item.Value.StatusCode, HttpStatusCodeText = item.Value.StatusCode.ToString() });
             }
 
-            return Json(linkWithStatusCode);
+            return Json(uriStatuses);
         }
 
 
