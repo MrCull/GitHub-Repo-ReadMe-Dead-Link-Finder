@@ -39,7 +39,7 @@ namespace DeadLinkFinderWeb.Controllers
             return View();
         }
 
-
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Search(RepoCheckerModel repoChecker)
         {
             if (!string.IsNullOrWhiteSpace(repoChecker.SingleRepoUri))
@@ -53,8 +53,14 @@ namespace DeadLinkFinderWeb.Controllers
                     _searchRepositoriesRequest.SortField = (RepoSearchSort)repoChecker.SearchSort;
                 }
 
-
-                _searchRepositoriesRequest.Order = (SortDirection)repoChecker.SortAscDsc;
+                if (repoChecker.SortAscDsc == null)
+                {
+                    _searchRepositoriesRequest.Order = SortDirection.Descending;
+                }
+                else
+                {
+                    _searchRepositoriesRequest.Order = (SortDirection)repoChecker.SortAscDsc;
+                }
 
                 if (repoChecker.MinStar.HasValue && repoChecker.MinStar >= 0)
                 {
