@@ -22,7 +22,7 @@ namespace DeadLinkFinderConsole
             services.AddSingleton(new SearchRepositoriesRequest()
             {
                 // lets find a library with over ? stars
-                Stars = Octokit.Range.GreaterThan(5000),
+                Stars = Octokit.Range.GreaterThan(100),
                 //Stars = Octokit.Range.LessThan(1),
 
                 // check for repos that have been updated between a given date range?
