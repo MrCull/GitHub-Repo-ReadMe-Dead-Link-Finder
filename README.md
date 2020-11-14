@@ -16,7 +16,7 @@ Currently this program searches all of GitHub for Repos with over 100 Stars that
 
 A (user changeable) default of 25 repos are checked per run of the program.
 
-Once a bad link is found the relevant informaiton saved in a file.
+Once a bad link is found the relevant information saved in a file.
 
 Then this information can be manually passed on, likely by creating an Issue in the affected Repo (which is probably why you might have ended up here reading this).
 
