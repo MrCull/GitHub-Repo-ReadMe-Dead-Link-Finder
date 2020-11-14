@@ -15,3 +15,8 @@
 /WebsiteLinksCheckerTest/obj
 /DeadLinkFinderWeb/bin/Debug/netcoreapp3.1
 /DeadLinkFinderWeb/obj
+/DeadLinkFinderWeb/Properties/PublishProfiles
+/DeadLinkFinderWeb/bin/Release/netcoreapp3.1
+/GitHubRepoFinder/bin/Release/netcoreapp3.1
+/WebsiteLinksChecker/bin/Release/netcoreapp3.1
+/DeadLinkFinderWeb/.config
