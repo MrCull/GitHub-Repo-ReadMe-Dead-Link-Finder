@@ -29,6 +29,8 @@ namespace DeadLinkFinderWeb.Models
         [Display(Name = "Sort Asc/Dsc")]
         public SortDirection? SortAscDsc { get; set; }
 
+        public bool IncludeForks { get; set; } = false;
+
         public List<Uri> Uris;
 
         public RepoCheckerModel()
