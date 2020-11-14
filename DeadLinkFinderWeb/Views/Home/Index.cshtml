@@ -105,16 +105,17 @@
                     var bad = 0;
                     var warning = 0;
                     var body = "";
-                    $.each(data, function (key, value) {
+                    $.each(data, function (key) {
+
 
                         body += " <tr class='table-slim'>";
                         body += "<td nowrap ><img src='../images/";
 
-                        if (value == 200) {
+                        if (data[key].httpStatusCode == 200) {
                             body += "ok-icon.png";
                             ok = ok + 1;
                         }
-                        else if (value == 404) {
+                        else if (data[key].httpStatusCode == 404) {
                             bad = bad + 1;
                             body += "error-icon.png";
                         }
@@ -125,8 +126,8 @@
 
                         body += "' alt='icon' width='25' height='25'/></td>";
 
-                        body +=  "<td nowrap> Http Status Code: " + value + " </td>" +
-                            "<td ><a href='" + key + "'>" + key + " </a> </td>" +
+                        body +=  "<td nowrap> " + data[key].httpStatusCodeText + "(" + data[key].httpStatusCode + ") </td>" +
+                            "<td ><a href='" + data[key].uriText + "'>" + data[key].uriText + " </a> </td>" +
                             "</tr>";
 
                     });
