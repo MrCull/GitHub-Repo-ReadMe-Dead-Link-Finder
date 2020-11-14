@@ -20,7 +20,7 @@ namespace DeadLinkFinderWeb.Models
         [Display(Name = "Repos update after")]
         public DateTime? UpdatedAfter { get; set; }
 
-        [Display(Name = "Repos belonging to User / Group")]
+        [Display(Name = "Repos for GitHub User/Account")]
         public string User { get; set; }
 
         [Display(Name = "Sort Field")]

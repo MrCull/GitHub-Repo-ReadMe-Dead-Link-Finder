@@ -48,7 +48,12 @@ namespace DeadLinkFinderWeb.Controllers
             }
             else
             {
-                _searchRepositoriesRequest.SortField = (RepoSearchSort)repoChecker.SearchSort;
+                if (repoChecker.SearchSort != null)
+                {
+                    _searchRepositoriesRequest.SortField = (RepoSearchSort)repoChecker.SearchSort;
+                }
+
+
                 _searchRepositoriesRequest.Order = (SortDirection)repoChecker.SortAscDsc;
 
                 if (repoChecker.MinStar.HasValue && repoChecker.MinStar >= 0)
