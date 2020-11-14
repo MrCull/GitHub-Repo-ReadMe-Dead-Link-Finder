@@ -93,7 +93,7 @@ namespace DeadLinkFinderWeb.Controllers
             return View("Index", repoChecker);
         }
 
-
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public JsonResult CheckRepo(string uri)
         {
             Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(new Uri(uri));
