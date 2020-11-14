@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 using WebsiteLinksChecker;
 
 namespace DeadLinkFinderConsole
@@ -20,7 +21,8 @@ namespace DeadLinkFinderConsole
         private readonly IFileNameFromUri _fileNameFromUri;
         private readonly SearchRepositoriesRequest _searchRepositoriesRequest;
         private readonly string _outputDirectory;
-
+        private readonly string _webUiSearchPathSingleRepo;
+        private readonly string _webUiSearchPathUser;
 
         public ProgramUI(IConfigurationRoot configuration, IUriFinder uriFinder, ILinkChecker linkChecker, IFileNameFromUri fileNameFromUri, SearchRepositoriesRequest searchRepositoriesRequest)
         {
@@ -31,6 +33,8 @@ namespace DeadLinkFinderConsole
             _searchRepositoriesRequest = searchRepositoriesRequest;
 
             _outputDirectory = _configuration["outputDirectory"];
+            _webUiSearchPathSingleRepo = _configuration["webUiSearchPathSingleRepo"];
+            _webUiSearchPathUser = _configuration["webUiSearchPathUser"];
         }
 
         public async Task RunAsync()
@@ -208,9 +212,28 @@ namespace DeadLinkFinderConsole
                     LogLinkWithStatus(streamWriter, httpUnSuccessfullResponseMessages);
                     streamWriter.WriteLine();
                     streamWriter.WriteLine();
+                    streamWriter.WriteLine("Re-check this Repo via: " + WebUiLinkForUri(uri));
+                    streamWriter.WriteLine("Check all Repos for this GitHub account: " + WebUiLinkForGitHubAccountLinkedToUri(uri));
+                    streamWriter.WriteLine();
+                    streamWriter.WriteLine();
                     LogLinkWithStatus(streamWriter, httpOtherResponseMessages);
                 }
             }
+        }
+
+        private string WebUiLinkForGitHubAccountLinkedToUri(Uri uri)
+        {
+            /// Gets the github user account
+            /// e.g for https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder
+            /// It will return "MrCull"
+            string gitHubUserAccountName = uri.Segments.Skip(1).First().Replace(@"/", "");
+
+            return _webUiSearchPathUser + gitHubUserAccountName;
+        }
+
+        private string WebUiLinkForUri(Uri uri)
+        {
+            return _webUiSearchPathSingleRepo + HttpUtility.UrlEncode(uri.ToString());
         }
 
         private static void LogLinkWithStatus(StreamWriter streamWriter, IEnumerable<KeyValuePair<string, HttpResponseMessage>> httpResponseMessages)
