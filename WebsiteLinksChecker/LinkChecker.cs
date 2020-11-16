@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebsiteLinksChecker
@@ -90,9 +92,30 @@ namespace WebsiteLinksChecker
         public async Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage)
         {
             HttpResponseMessage httpResponseMessage = null;
+            int loopLimit = 30;
+            int numberOfLoops = 0;
+            var random = new Random();
             try
             {
-                httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
+                do
+                {
+                    numberOfLoops += 1;
+                    if (numberOfLoops > loopLimit)
+                    {
+                        throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriWithinPage}");
+                    }
+
+                    httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
+
+                    if (httpResponseMessage.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        // Make this task thread sleep between 1 and x seconds to try and not overload the server again
+                        int sleepSeconds = random.Next(1, 5);
+                        Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uriWithinPage} so sleeping for {sleepSeconds} seconds before trying again");
+                        Thread.Sleep(sleepSeconds * 1000);
+                    }
+                } while (httpResponseMessage.StatusCode == HttpStatusCode.TooManyRequests);
+
             }
             catch (HttpRequestException hre)
             {
