@@ -68,8 +68,9 @@
                     {
                         <div class="card">
                             <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class='fa fa-plus'></i></a>
+                                <b id="card_img_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"></b>
                                 <a data-toggle="collapse" href="@uri">@uri</a>
-                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class="fa fa-plus"></i></a>
                             </div>
                             <div id='collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")' class="collapse show" data-parent="#accordion">
                                 <div class="card-body" id="card_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
@@ -140,20 +141,18 @@
                     else if (warning > 0) {
                         thImage = 'warning-icon.jpg';
                     }
-                    else if (@(Model?.Uris.Count ?? 0) != 1) {
-                        $('#collapse_' + ConvertUriToValidId(uri)).collapse()
-                    }
-
 
                     $("#checking_" + ConvertUriToValidId(uri) ).remove();
 
 
-                    $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_head_' + ConvertUriToValidId(uri));
+                    $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_img_' + ConvertUriToValidId(uri));
                     $(" <i>Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</i>").appendTo('#card_head_' + ConvertUriToValidId(uri));
 
 
                     $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
 
+
+                    $('#collapse_' + ConvertUriToValidId(uri)).collapse().delay(2000).expand();
 
 
                 },
