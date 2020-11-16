@@ -65,10 +65,10 @@ namespace WebsiteLinksChecker
             HttpResponseMessage httpResponseMessage;
             HttpStatusCode httpStatusCode = HttpStatusCode.OK;
             int loopLimit = 10;
-            int numberOfLoops;
+            int numberOfLoops = 0;
             do
             {
-                numberOfLoops = +1;
+                numberOfLoops += 1;
                 if (numberOfLoops > loopLimit)
                 {
                     throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriForMainPage}");
