@@ -152,8 +152,9 @@
                     $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
 
 
-                    $('#collapse_' + ConvertUriToValidId(uri)).collapse().delay(2000).expand();
-
+                    if (@(Model?.Uris.Count ?? 0) != 1) {
+                        $('#collapse_' + ConvertUriToValidId(uri)).collapse();
+                    }
 
                 },
                 error: function () {
