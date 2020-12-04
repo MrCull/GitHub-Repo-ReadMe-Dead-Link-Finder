@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace DeadLinkFinderWeb.Models
 {
@@ -49,6 +50,22 @@ namespace DeadLinkFinderWeb.Models
         {
             Ascending = 0,
             Descending = 1
+        }
+
+        public override string ToString()
+        {
+            StringBuilder output = new StringBuilder();
+
+            output.AppendLine($"NumberOfReposToSearchFor : {NumberOfReposToSearchFor}");
+            output.AppendLine($"SingleRepoUri : {SingleRepoUri}");
+            output.AppendLine($"MinStar : {MinStar}");
+            output.AppendLine($"UpdatedAfter : {UpdatedAfter}");
+            output.AppendLine($"User : {User}");
+            output.AppendLine($"SearchSort : {SearchSort}");
+            output.AppendLine($"SortAscDsc : {SortAscDsc}");
+            output.AppendLine($"IncludeForks : {IncludeForks}");
+
+            return output.ToString();
         }
     }
 }

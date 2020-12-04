@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
+using TelemetryLib;
 using WebsiteLinksChecker;
 
 namespace DeadLinkFinderWeb.Controllers
@@ -18,15 +20,17 @@ namespace DeadLinkFinderWeb.Controllers
         private readonly ILinkChecker _linkChecker;
         private readonly SearchRepositoriesRequest _searchRepositoriesRequest;
         private readonly GitHubActiveReposFinder _gitHubActiveReposFinder;
+        private readonly ITelemetry _telemetry;
 
         public HomeController(ILogger<HomeController> logger, ILinkGetter linkGetter, ILinkChecker linkChecker, SearchRepositoriesRequest searchRepositoriesRequest,
-            GitHubActiveReposFinder gitHubActiveReposFinder)
+            GitHubActiveReposFinder gitHubActiveReposFinder, ITelemetry telemetry)
         {
             _logger = logger;
             _linkGetter = linkGetter;
             _linkChecker = linkChecker;
             _searchRepositoriesRequest = searchRepositoriesRequest;
             _gitHubActiveReposFinder = gitHubActiveReposFinder;
+            _telemetry = telemetry;
         }
 
         public IActionResult Index()
@@ -42,6 +46,8 @@ namespace DeadLinkFinderWeb.Controllers
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Search(RepoCheckerModel repoChecker)
         {
+            LogTelemetry(repoChecker);
+
             if (!string.IsNullOrWhiteSpace(repoChecker.SingleRepoUri))
             {
                 repoChecker.Uris.Add(new Uri(repoChecker.SingleRepoUri));
@@ -90,7 +96,6 @@ namespace DeadLinkFinderWeb.Controllers
                     _searchRepositoriesRequest.Fork = ForkQualifier.IncludeForks;
                 }
 
-
                 IEnumerable<Uri> uris = _gitHubActiveReposFinder.GetUris(maxRepos, _searchRepositoriesRequest);
                 repoChecker.Uris.AddRange(uris);
 
@@ -98,6 +103,7 @@ namespace DeadLinkFinderWeb.Controllers
 
             return View("Index", repoChecker);
         }
+
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public JsonResult CheckRepo(string uri)
@@ -137,5 +143,25 @@ namespace DeadLinkFinderWeb.Controllers
         {
             return View(new ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        private void LogTelemetry(RepoCheckerModel repoChecker)
+        {
+            try
+            {
+                StringBuilder logText = new StringBuilder();
+                logText.AppendLine("DatetimeUtc: " + DateTime.UtcNow.ToString());
+                logText.AppendLine("IP: " + HttpContext.Connection.RemoteIpAddress.ToString());
+                logText.AppendLine("Search info:");
+                logText.AppendLine(repoChecker.ToString());
+
+                _telemetry.RecordSearch(logText.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+        }
+
     }
 }

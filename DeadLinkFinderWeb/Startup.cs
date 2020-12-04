@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Octokit;
 using System.Net.Http;
+using TelemetryLib;
 using WebsiteLinksChecker;
 
 namespace DeadLinkFinderWeb
@@ -22,6 +23,16 @@ namespace DeadLinkFinderWeb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            TelemetryConfig telemetryConfig = Configuration.GetSection("TelemetryConfig").Get<TelemetryConfig>();
+            services.AddSingleton(telemetryConfig);
+
+            services.AddSingleton<IEmailConfiguration>(Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>());
+            services.AddSingleton(Configuration.GetSection("EmailAddress").Get<TelemetryLib.EmailAddress>());
+            services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<ITelemetry, Telemetry>();
+
+
             services.AddTransient<HttpClient, HttpClient>();
 
             var linkGetter = new LinkGetter(new HttpClient(), "readme");
@@ -33,8 +44,6 @@ namespace DeadLinkFinderWeb
             services.AddTransient<SearchRepositoriesRequest, SearchRepositoriesRequest>();
 
             services.AddTransient(s => new GitHubActiveReposFinder(gitHubClient));
-
-
 
 
             services.AddControllersWithViews();

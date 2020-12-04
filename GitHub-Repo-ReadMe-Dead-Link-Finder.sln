@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebsiteLinksCheckerTest", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeadLinkFinderConsoleTest", "DeadLinkFinderConsoleTest\DeadLinkFinderConsoleTest.csproj", "{485D6A32-F21F-4E16-B45B-D68CEB5FBCDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeadLinkFinderWeb", "DeadLinkFinderWeb\DeadLinkFinderWeb.csproj", "{AB7716D4-5F49-400F-B3B1-A58159F4C162}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeadLinkFinderWeb", "DeadLinkFinderWeb\DeadLinkFinderWeb.csproj", "{AB7716D4-5F49-400F-B3B1-A58159F4C162}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryLib", "Telemetry\TelemetryLib.csproj", "{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{AB7716D4-5F49-400F-B3B1-A58159F4C162}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB7716D4-5F49-400F-B3B1-A58159F4C162}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB7716D4-5F49-400F-B3B1-A58159F4C162}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
