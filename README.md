@@ -37,3 +37,9 @@ The GitHub API has a Rate Limit to throttle the amount of request from a certain
 To increase this limit when using this program you can enter your Personal Access Token: https://github.com/settings/tokens
 
 However this is optional and the program will still work without this although this limit may get hit.
+
+## GitHub actions
+There are a number of other projects on GitHub which will check for broken links via GitHub actions:
+https://github.com/marketplace/actions/markdown-link-check
+
+https://github.com/marketplace/actions/link-checker
