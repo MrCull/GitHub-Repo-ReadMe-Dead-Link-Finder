@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 
 namespace TelemetryLib
@@ -30,6 +31,12 @@ namespace TelemetryLib
 
                 _emailService.Send(emailMessage);
             }
+
+            var directory = "telem";
+            var fileName = $"{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss.ffffff")}.txt";
+            Directory.CreateDirectory(directory);
+            File.AppendAllText($"{directory}\\{fileName}", userTelemetryText);
+
         }
     }
 }
