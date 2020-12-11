@@ -97,6 +97,7 @@ namespace WebsiteLinksChecker
             var random = new Random();
             try
             {
+                HttpStatusCode statusCode = HttpStatusCode.OK;
                 do
                 {
                     numberOfLoops += 1;
@@ -105,21 +106,32 @@ namespace WebsiteLinksChecker
                         throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriWithinPage}");
                     }
 
-                    httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
+                    statusCode = HttpStatusCode.OK;
+                    try
+                    {
+                        httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
+                        statusCode = httpResponseMessage.StatusCode;
+                    }
+                    catch (HttpRequestException hre)
+                    {
+                        if (hre.InnerException.Message == "A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.")
+                        {
+                            statusCode = HttpStatusCode.TooManyRequests;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {uriWithinPage}");
+                        }
+                    }
 
-                    if (httpResponseMessage.StatusCode == HttpStatusCode.TooManyRequests)
+                    if (statusCode == HttpStatusCode.TooManyRequests)
                     {
                         // Make this task thread sleep between 1 and x seconds to try and not overload the server again
-                        int sleepSeconds = random.Next(1, 5);
+                        int sleepSeconds = random.Next(3, 15);
                         Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uriWithinPage} so sleeping for {sleepSeconds} seconds before trying again");
                         Thread.Sleep(sleepSeconds * 1000);
                     }
-                } while (httpResponseMessage.StatusCode == HttpStatusCode.TooManyRequests);
-
-            }
-            catch (HttpRequestException hre)
-            {
-                Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {uriWithinPage}");
+                } while (statusCode == HttpStatusCode.TooManyRequests);
             }
             catch (Exception e)
             {
