@@ -2,6 +2,7 @@
 {
     public class TelemetryConfig
     {
-        public bool TelemetryEnabled { get; set; }
+        public bool TelemetryEnabledEmail { get; set; }
+        public bool TelemetryEnabledFile { get; set; }
     }
 }
