@@ -22,3 +22,5 @@
 /DeadLinkFinderWeb/.config
 /Telemetry/bin/Debug/netcoreapp3.1
 /Telemetry/obj
+/Telemetry/bin/Release/netcoreapp3.1
+/DeadLinkFinderWeb/telem
