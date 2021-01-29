@@ -19,7 +19,7 @@ namespace TelemetryLib
 
         public void RecordSearch(string userTelemetryText)
         {
-            if (_telemetryConfig.TelemetryEnabled)
+            if (_telemetryConfig.TelemetryEnabledEmail)
             {
                 var emailMessage = new EmailMessage()
                 {
@@ -32,10 +32,13 @@ namespace TelemetryLib
                 _emailService.Send(emailMessage);
             }
 
-            var directory = "telem";
-            var fileName = $"{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss.ffffff")}.txt";
-            Directory.CreateDirectory(directory);
-            File.AppendAllText($"{directory}\\{fileName}", userTelemetryText);
+            if (_telemetryConfig.TelemetryEnabledFile)
+            {
+                var directory = "telem";
+                var fileName = $"{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss.ffffff")}.txt";
+                Directory.CreateDirectory(directory);
+                File.AppendAllText($"{directory}\\{fileName}", userTelemetryText);
+            }
 
         }
     }
