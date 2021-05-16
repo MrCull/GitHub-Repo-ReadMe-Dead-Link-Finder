@@ -109,6 +109,11 @@ namespace WebsiteLinksChecker
                     statusCode = HttpStatusCode.OK;
                     try
                     {
+                        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml");
+                        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Encoding", "gzip, deflate");
+                        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0");
+                        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Charset", "ISO-8859-1");
+
                         httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
                         statusCode = httpResponseMessage.StatusCode;
                     }
