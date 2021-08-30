@@ -69,14 +69,21 @@ namespace WebsiteLinksChecker
                     }
                 }
 
-                Task.WaitAll(taskList.Values.ToArray());
+                Task.WaitAll(taskList.Values.ToArray(), millisecondsTimeout: 120000);
 
                 foreach (Uri checkedUri in urisToCheck)
                 {
-                    HttpResponseMessage httpResponseMessage = taskList[checkedUri.AbsoluteUri].Result;
-                    if (httpResponseMessage != null)
+                    if (taskList[checkedUri.AbsoluteUri].IsCompleted)
                     {
-                        results.Add(checkedUri.AbsoluteUri, httpResponseMessage);
+                        HttpResponseMessage httpResponseMessage = taskList[checkedUri.AbsoluteUri].Result;
+                        if (httpResponseMessage != null)
+                        {
+                            results.Add(checkedUri.AbsoluteUri, httpResponseMessage);
+                        }
+                    }
+                    else
+                    {
+                        results.Add(checkedUri.AbsoluteUri, new HttpResponseMessage(HttpStatusCode.RequestTimeout));
                     }
                 }
             }
