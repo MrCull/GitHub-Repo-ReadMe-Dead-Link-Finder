@@ -64,7 +64,11 @@ namespace DeadLinkFinderConsole
                 foreach (Uri repoUri in repoUris)
                 {
                     Console.WriteLine($"Checking: {repoUri}");
-                    Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(repoUri);
+
+                    string branch = "master";
+                    string fakeRealLifeMarkdoenContent = "- https://www.reddit.com/r/dotnet/comments/1841x0f/does_this_takehome_project_look_okay/\r\n\r\n![image](https://github.com/user-attachments/assets/5a33b9d5-42c6-4ef7-8ee4-2a83ee484737)\r\n";
+
+                    Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinks(repoUri.AbsoluteUri, branch, fakeRealLifeMarkdoenContent);
                     SaveOutput(repoUri, linkWithResponse, _outputDirectory);
                 }
 
@@ -82,10 +86,10 @@ namespace DeadLinkFinderConsole
         private void DisplayGitHubSearchRequestParameters(SearchRepositoriesRequest searchRepositoriesRequest)
         {
             Console.WriteLine("Searching for Repos with");
-            Console.WriteLine($" - Min Stars: {searchRepositoriesRequest.Stars.ToString()}");
-            Console.WriteLine($" - Udated: {searchRepositoriesRequest.Updated.ToString()}");
-            Console.WriteLine($" - SortField {searchRepositoriesRequest.SortField.ToString()}");
-            Console.WriteLine($" - Order {searchRepositoriesRequest.Order.ToString()}");
+            Console.WriteLine($" - Min Stars: {searchRepositoriesRequest.Stars}");
+            Console.WriteLine($" - Udated: {searchRepositoriesRequest.Updated}");
+            Console.WriteLine($" - SortField {searchRepositoriesRequest.SortField}");
+            Console.WriteLine($" - Order {searchRepositoriesRequest.Order}");
             Console.WriteLine();
 
         }
@@ -131,7 +135,7 @@ namespace DeadLinkFinderConsole
             ConsoleKeyInfo authenticationType = Console.ReadKey();
             Console.Clear();
 
-            if (authenticationType.Key == ConsoleKey.D2 || authenticationType.Key == ConsoleKey.NumPad2)
+            if (authenticationType.Key is ConsoleKey.D2 or ConsoleKey.NumPad2)
             {
                 Console.Write("Enter your user name (or Enter to skip login): ");
                 string gitHubUserName = Console.ReadLine();
@@ -142,7 +146,7 @@ namespace DeadLinkFinderConsole
                     credentials = new Credentials(gitHubUserName, gitHubPassword);
                 }
             }
-            else if (authenticationType.Key == ConsoleKey.D1 || authenticationType.Key == ConsoleKey.NumPad1)
+            else if (authenticationType.Key is ConsoleKey.D1 or ConsoleKey.NumPad1)
             {
                 Console.Write("Enter github personal access token (see https://github.com/settings/tokens): ");
                 string personalAccessToken = Console.ReadLine();
@@ -186,7 +190,7 @@ namespace DeadLinkFinderConsole
         {
             int successLinkCount = linkCheckerResults.Count(lcr => lcr.Value.StatusCode == HttpStatusCode.OK);
             IEnumerable<KeyValuePair<string, HttpResponseMessage>> httpUnSuccessfullResponseMessages = linkCheckerResults.Where(lcr => lcr.Value.StatusCode == HttpStatusCode.NotFound);
-            IEnumerable<KeyValuePair<string, HttpResponseMessage>> httpOtherResponseMessages = linkCheckerResults.Where(lcr => lcr.Value.StatusCode != HttpStatusCode.OK && lcr.Value.StatusCode != HttpStatusCode.NotFound);
+            IEnumerable<KeyValuePair<string, HttpResponseMessage>> httpOtherResponseMessages = linkCheckerResults.Where(lcr => lcr.Value.StatusCode is not HttpStatusCode.OK and not HttpStatusCode.NotFound);
 
             int c = linkCheckerResults.Count - (successLinkCount + httpUnSuccessfullResponseMessages.Count());
 
@@ -202,22 +206,20 @@ namespace DeadLinkFinderConsole
                 string logFileName = $@"{_fileNameFromUri.ConvertToWindowsFileName(uri)}.txt";
                 Directory.CreateDirectory(outputDirectory);
                 string logFilePath = Path.Combine(outputDirectory, logFileName);
-                using (StreamWriter streamWriter = File.CreateText(logFilePath))
-                {
+                using StreamWriter streamWriter = File.CreateText(logFilePath);
 
-                    var logFileHeader = $"At {DateTime.UtcNow.ToString("s")}Z [{httpUnSuccessfullResponseMessages.Count()}] bad links found in [{uri}] under document section[{_linkChecker.ElementId}]";
-                    streamWriter.WriteLine(logFileHeader);
-                    streamWriter.WriteLine();
+                string logFileHeader = $"At {DateTime.UtcNow:s}Z [{httpUnSuccessfullResponseMessages.Count()}] bad links found in [{uri}] under document section[{_linkChecker.ElementId}]";
+                streamWriter.WriteLine(logFileHeader);
+                streamWriter.WriteLine();
 
-                    LogLinkWithStatus(streamWriter, httpUnSuccessfullResponseMessages);
-                    streamWriter.WriteLine();
-                    streamWriter.WriteLine();
-                    streamWriter.WriteLine("Re-check this Repo via: " + WebUiLinkForUri(uri));
-                    streamWriter.WriteLine("Check all Repos for this GitHub account: " + WebUiLinkForGitHubAccountLinkedToUri(uri));
-                    streamWriter.WriteLine();
-                    streamWriter.WriteLine();
-                    LogLinkWithStatus(streamWriter, httpOtherResponseMessages);
-                }
+                LogLinkWithStatus(streamWriter, httpUnSuccessfullResponseMessages);
+                streamWriter.WriteLine();
+                streamWriter.WriteLine();
+                streamWriter.WriteLine("Re-check this Repo via: " + WebUiLinkForUri(uri));
+                streamWriter.WriteLine("Check all Repos for this GitHub account: " + WebUiLinkForGitHubAccountLinkedToUri(uri));
+                streamWriter.WriteLine();
+                streamWriter.WriteLine();
+                LogLinkWithStatus(streamWriter, httpOtherResponseMessages);
             }
         }
 

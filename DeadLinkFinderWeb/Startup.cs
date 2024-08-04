@@ -35,11 +35,11 @@ namespace DeadLinkFinderWeb
 
             services.AddTransient<HttpClient, HttpClient>();
 
-            var linkGetter = new LinkGetter(new HttpClient(), "readme");
-            services.AddTransient<ILinkGetter>(s => linkGetter);
-            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), linkGetter));
+            services.AddHttpClient();
+            services.AddScoped<ILinkGetter, LinkGetter>();
+            services.AddScoped<ILinkChecker, LinkChecker>();
 
-            var gitHubClient = new GitHubClient(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes-web"));
+            GitHubClient gitHubClient = new(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes-web"));
             services.AddTransient(s => gitHubClient);
             services.AddTransient<SearchRepositoriesRequest, SearchRepositoriesRequest>();
 

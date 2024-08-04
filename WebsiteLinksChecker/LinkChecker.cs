@@ -19,26 +19,25 @@ namespace WebsiteLinksChecker
         {
             _httpClient = httpClient;
             _linkGetter = linkGetter;
-            ElementId = linkGetter.ElementId;
         }
 
-        public Dictionary<string, HttpResponseMessage> CheckLinks(Uri uri)
+        public async Task<Dictionary<string, HttpResponseMessage>> CheckLinks(string projectBaseUrl, string branch, string markdownContent)
         {
-            var results = new Dictionary<string, HttpResponseMessage>();
+            Dictionary<string, HttpResponseMessage> results = [];
             try
             {
-                List<Uri> urisFromWithinPageOfMainUri = _linkGetter.GetUrisOutOfPageFromMainUri(uri);
+                List<string> urisFromWithinPageOfMainUri = await _linkGetter.ExtractUrlsAsync(projectBaseUrl, branch, markdownContent);
                 results = CheckUrisHttpStatus(urisFromWithinPageOfMainUri);
 
             }
             catch (HttpRequestException hre)
             {
-                Console.WriteLine($"HttpRequestException Error for {uri}");
+                Console.WriteLine($"HttpRequestException Error for {projectBaseUrl}");
                 Console.WriteLine(hre);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error for {uri}");
+                Console.WriteLine($"Error for {projectBaseUrl}");
                 Console.WriteLine(ex);
             }
 
@@ -46,21 +45,21 @@ namespace WebsiteLinksChecker
         }
 
 
-        private Dictionary<string, HttpResponseMessage> CheckUrisHttpStatus(List<Uri> urisToCheck)
+        private Dictionary<string, HttpResponseMessage> CheckUrisHttpStatus(List<string> urlsToCheck)
         {
-            var results = new Dictionary<string, HttpResponseMessage>();
+            Dictionary<string, HttpResponseMessage> results = [];
 
             try
             {
-                var taskList = new Dictionary<string, Task<HttpResponseMessage>>();
+                Dictionary<string, Task<HttpResponseMessage>> taskList = [];
 
-                foreach (Uri uriTocheck in urisToCheck)
+                foreach (string urlTocheck in urlsToCheck)
                 {
 
                     try
                     {
-                        Task<HttpResponseMessage> response = GetHttpResponseAsync(uriTocheck);
-                        taskList.Add(uriTocheck.AbsoluteUri, response);
+                        Task<HttpResponseMessage> response = GetHttpResponseAsync(urlTocheck);
+                        taskList.Add(urlTocheck, response);
 
                     }
                     catch (Exception e)
@@ -71,19 +70,19 @@ namespace WebsiteLinksChecker
 
                 Task.WaitAll(taskList.Values.ToArray(), millisecondsTimeout: 120000);
 
-                foreach (Uri checkedUri in urisToCheck)
+                foreach (string checkedUrl in urlsToCheck)
                 {
-                    if (taskList[checkedUri.AbsoluteUri].IsCompleted)
+                    if (taskList[checkedUrl].IsCompleted)
                     {
-                        HttpResponseMessage httpResponseMessage = taskList[checkedUri.AbsoluteUri].Result;
+                        HttpResponseMessage httpResponseMessage = taskList[checkedUrl].Result;
                         if (httpResponseMessage != null)
                         {
-                            results.Add(checkedUri.AbsoluteUri, httpResponseMessage);
+                            results.Add(checkedUrl, httpResponseMessage);
                         }
                     }
                     else
                     {
-                        results.Add(checkedUri.AbsoluteUri, new HttpResponseMessage(HttpStatusCode.RequestTimeout));
+                        results.Add(checkedUrl, new HttpResponseMessage(HttpStatusCode.RequestTimeout));
                     }
                 }
             }
@@ -96,12 +95,12 @@ namespace WebsiteLinksChecker
         }
 
 
-        public async Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage)
+        public async Task<HttpResponseMessage> GetHttpResponseAsync(string urlWithinPage)
         {
             HttpResponseMessage httpResponseMessage = null;
             int loopLimit = 30;
             int numberOfLoops = 0;
-            var random = new Random();
+            Random random = new();
             try
             {
                 HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -110,7 +109,7 @@ namespace WebsiteLinksChecker
                     numberOfLoops += 1;
                     if (numberOfLoops > loopLimit)
                     {
-                        throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriWithinPage}");
+                        throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {urlWithinPage}");
                     }
 
                     statusCode = HttpStatusCode.OK;
@@ -121,7 +120,7 @@ namespace WebsiteLinksChecker
                         _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0");
                         _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Charset", "ISO-8859-1");
 
-                        httpResponseMessage = await _httpClient.GetAsync(uriWithinPage);
+                        httpResponseMessage = await _httpClient.GetAsync(urlWithinPage);
                         statusCode = httpResponseMessage.StatusCode;
                     }
                     catch (HttpRequestException hre)
@@ -132,7 +131,7 @@ namespace WebsiteLinksChecker
                         }
                         else
                         {
-                            Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {uriWithinPage}");
+                            Console.WriteLine($"Suppressing error {hre.InnerException.Message} from {urlWithinPage}");
                         }
                     }
 
@@ -140,7 +139,7 @@ namespace WebsiteLinksChecker
                     {
                         // Make this task thread sleep between 1 and x seconds to try and not overload the server again
                         int sleepSeconds = random.Next(3, 15);
-                        Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uriWithinPage} so sleeping for {sleepSeconds} seconds before trying again");
+                        Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {urlWithinPage} so sleeping for {sleepSeconds} seconds before trying again");
                         Thread.Sleep(sleepSeconds * 1000);
                     }
                 } while (statusCode == HttpStatusCode.TooManyRequests);
