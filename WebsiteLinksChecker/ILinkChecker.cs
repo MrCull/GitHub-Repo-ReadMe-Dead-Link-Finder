@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker
+namespace LinksChecker
 {
     public interface ILinkChecker
     {

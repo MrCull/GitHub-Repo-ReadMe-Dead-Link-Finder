@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker;
+namespace LinksChecker;
 
 public interface ILinkGetter
 {

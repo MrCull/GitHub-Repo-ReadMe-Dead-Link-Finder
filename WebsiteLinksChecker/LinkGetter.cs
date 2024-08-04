@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker;
+namespace LinksChecker;
 
 public class LinkGetter : ILinkGetter
 {

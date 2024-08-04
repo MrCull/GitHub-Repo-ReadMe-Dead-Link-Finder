@@ -1,3 +1,4 @@
+using LinksChecker;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
@@ -7,9 +8,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WebsiteLinksChecker;
 
-namespace WebsiteLinksCheckerTest
+namespace LinksCheckerTest
 {
 
     public class LinkCheckerTest

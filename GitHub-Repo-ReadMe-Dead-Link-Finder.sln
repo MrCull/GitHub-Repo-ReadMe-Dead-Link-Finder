@@ -1,21 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29905.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeadLinkFinderConsole", "DeadLinkFinderConsole\DeadLinkFinderConsole.csproj", "{6C3D783E-6748-4E7C-AD38-76F333031687}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitHubRepoFinder", "GitHubRepoFinder\GitHubRepoFinder.csproj", "{ADB0D372-F171-4643-8016-F82E8CC9A936}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebsiteLinksChecker", "WebsiteLinksChecker\WebsiteLinksChecker.csproj", "{A5D21E7D-3B79-4603-87F5-5E1852D75303}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinksChecker", "WebsiteLinksChecker\LinksChecker.csproj", "{A5D21E7D-3B79-4603-87F5-5E1852D75303}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebsiteLinksCheckerTest", "WebsiteLinksCheckerTest\WebsiteLinksCheckerTest.csproj", "{55600D32-3FBD-443E-AD07-CB6AE4FF1B98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinksCheckerTest", "WebsiteLinksCheckerTest\LinksCheckerTest.csproj", "{55600D32-3FBD-443E-AD07-CB6AE4FF1B98}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeadLinkFinderConsoleTest", "DeadLinkFinderConsoleTest\DeadLinkFinderConsoleTest.csproj", "{485D6A32-F21F-4E16-B45B-D68CEB5FBCDF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeadLinkFinderWeb", "DeadLinkFinderWeb\DeadLinkFinderWeb.csproj", "{AB7716D4-5F49-400F-B3B1-A58159F4C162}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryLib", "Telemetry\TelemetryLib.csproj", "{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelemetryLib", "Telemetry\TelemetryLib.csproj", "{00FCE17B-5B9B-4AC6-9C3C-6CE858FCE957}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,10 +1,10 @@
 ﻿using GitHubRepoFinder;
+using LinksChecker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Octokit;
 using System;
 using System.Threading.Tasks;
-using WebsiteLinksChecker;
 
 
 namespace DeadLinkFinderConsole

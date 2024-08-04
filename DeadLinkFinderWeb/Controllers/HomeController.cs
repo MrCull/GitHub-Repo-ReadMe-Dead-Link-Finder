@@ -1,5 +1,6 @@
 ﻿using DeadLinkFinderWeb.Models;
 using GitHubRepoFinder;
+using LinksChecker;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -9,7 +10,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using TelemetryLib;
-using WebsiteLinksChecker;
 
 namespace DeadLinkFinderWeb.Controllers
 {
