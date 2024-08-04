@@ -4,6 +4,7 @@ using System;
 
 namespace DeadLinkFinderConsoleTest
 {
+    [TestFixture]
     public class FileNameFromUriTest
     {
         [TestCase("https://www.google.com/", "www.google.com")]
@@ -14,13 +15,13 @@ namespace DeadLinkFinderConsoleTest
         public void ConvertToWindowsFileName_UilString_FileNameIsCorrect(Uri uri, string expectedFileName)
         {
             // arrange
-            var sut = new FileNameFromUri();
+            FileNameFromUri sut = new();
 
             // act
             string actualFilename = sut.ConvertToWindowsFileName(uri);
 
             // assert
-            Assert.AreEqual(expectedFileName, actualFilename);
+            Assert.That(actualFilename, Is.EqualTo(expectedFileName));
         }
     }
 }
