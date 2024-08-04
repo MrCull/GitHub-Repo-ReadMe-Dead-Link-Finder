@@ -1,10 +1,10 @@
-﻿using NUnit.Framework;
+﻿using LinksChecker;
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebsiteLinksChecker;
 
-namespace WebsiteLinksCheckerTest;
+namespace LinksCheckerTest;
 
 [TestFixture]
 public class LinkGetterTest

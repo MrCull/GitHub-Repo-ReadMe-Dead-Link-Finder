@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GitHubRepoFinder\GitHubRepoFinder.csproj" />
-    <ProjectReference Include="..\WebsiteLinksChecker\WebsiteLinksChecker.csproj" />
+    <ProjectReference Include="..\WebsiteLinksChecker\LinksChecker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
