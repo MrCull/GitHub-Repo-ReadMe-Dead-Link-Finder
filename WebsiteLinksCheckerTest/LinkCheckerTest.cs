@@ -22,12 +22,12 @@ namespace WebsiteLinksCheckerTest
         public void CheckLinksWithResultsAsync_TwoLinksInPageForUri_OneOkTheOtherBad(string elementId)
         {
             // arrange
-            var mainPageUri = new Uri("https://dummy.com/");
+            Uri mainPageUri = new("https://dummy.com/");
 
             string okLink = "https://ok.com/";
             string notFoundLink = "https://notfound.com/";
 
-            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            Mock<HttpMessageHandler> mockHttpMessageHandler = new();
 
             mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(hrh => hrh.RequestUri.OriginalString == mainPageUri.ToString()), ItExpr.IsAny<CancellationToken>())
@@ -56,15 +56,15 @@ namespace WebsiteLinksCheckerTest
                     RequestMessage = new HttpRequestMessage(HttpMethod.Get, notFoundLink)
                 });
 
-            var httpClient = new HttpClient(mockHttpMessageHandler.Object);
+            HttpClient httpClient = new(mockHttpMessageHandler.Object);
 
-            var linkChecker = new LinkChecker(httpClient, new LinkGetter(httpClient, elementId));
+            LinkChecker linkChecker = new(httpClient, new LinkGetter(httpClient, elementId));
 
             // act
             Dictionary<string, HttpResponseMessage> results = linkChecker.CheckLinks(mainPageUri);
 
             // assert
-            CollectionAssert.IsNotEmpty(results);
+            Assert.That(results, Is.Not.Null.Or.Empty);
             Assert.That(results.Count, Is.EqualTo(2));
             Assert.That(results[okLink].StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(results[notFoundLink].StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
@@ -73,7 +73,7 @@ namespace WebsiteLinksCheckerTest
 
         private HttpContent GetHtmlWithTwoLinksInside(string elementId, string okLink, string deadLink)
         {
-            var html = new StringBuilder();
+            StringBuilder html = new();
             html.Append("<html>");
             html.Append($"<div id='{elementId}'><div><div>");
             html.Append($"<a href='{okLink}'>ok</a>");
