@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Octokit;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using WebsiteLinksChecker;
 
@@ -33,9 +32,10 @@ namespace DeadLinkFinderConsole
                 Order = SortDirection.Descending,
             });
 
-            var linkGetter = new LinkGetter(new HttpClient(), "readme");
-            services.AddTransient<ILinkGetter>(s => linkGetter);
-            services.AddTransient<ILinkChecker>(s => new LinkChecker(new HttpClient(), linkGetter));
+            services.AddHttpClient();
+
+            services.AddScoped<ILinkGetter, LinkGetter>();
+            services.AddScoped<ILinkChecker, LinkChecker>();
 
             services.AddTransient<ProgramUI, ProgramUI>();
             services.AddTransient<IFileNameFromUri, FileNameFromUri>();
@@ -46,7 +46,7 @@ namespace DeadLinkFinderConsole
 
         static void Main(string[] args)
         {
-            var services = new ServiceCollection();
+            ServiceCollection services = new();
             Configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();

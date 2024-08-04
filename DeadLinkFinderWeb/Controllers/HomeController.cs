@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using TelemetryLib;
 using WebsiteLinksChecker;
 
@@ -106,13 +106,13 @@ namespace DeadLinkFinderWeb.Controllers
 
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-        public JsonResult CheckRepo(string uri)
+        public async Task<JsonResult> CheckRepoAsync(string projectBaseUrl, string branch, string markdownContent)
         {
-            Dictionary<string, HttpResponseMessage> linkWithResponse = _linkChecker.CheckLinks(new Uri(uri));
+            Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinks(projectBaseUrl, branch, markdownContent);
 
-            var uriStatuses = new List<UriStatus>();
+            List<UriStatus> uriStatuses = [];
 
-            foreach (var item in linkWithResponse)
+            foreach (KeyValuePair<string, HttpResponseMessage> item in linkWithResponse)
             {
                 uriStatuses.Add(new UriStatus { UriText = item.Key, HttpStatusCode = item.Value.StatusCode, HttpStatusCodeText = item.Value.StatusCode.ToString() });
             }
@@ -121,18 +121,18 @@ namespace DeadLinkFinderWeb.Controllers
         }
 
 
-        public JsonResult GetLinksFromRepo(string uri)
+        public async Task<JsonResult> GetLinksFromRepoAsync(string projectBaseUrl, string branch, string markdownContent)
         {
 
-            List<Uri> linksFromRepo = _linkGetter.GetUrisOutOfPageFromMainUri(new Uri(uri));
+            List<string> linksFromRepo = await _linkGetter.ExtractUrlsAsync(projectBaseUrl, branch, markdownContent);
 
-            return Json(linksFromRepo.Select(uri => uri.AbsoluteUri));
+            return Json(linksFromRepo);
         }
 
-        public JsonResult CheckLink(string uri)
+        public async Task<JsonResult> CheckLinkAsync(string url)
         {
 
-            HttpResponseMessage linksFromRepo = _linkChecker.GetHttpResponseAsync(new Uri(uri)).Result;
+            HttpResponseMessage linksFromRepo = await _linkChecker.GetHttpResponseAsync(url);
 
             return Json(linksFromRepo.StatusCode);
         }
@@ -148,7 +148,7 @@ namespace DeadLinkFinderWeb.Controllers
         {
             try
             {
-                StringBuilder logText = new StringBuilder();
+                StringBuilder logText = new();
                 logText.AppendLine("DatetimeUtc: " + DateTime.UtcNow.ToString());
                 logText.AppendLine("IP: " + HttpContext.Connection.RemoteIpAddress.ToString());
                 logText.AppendLine("Search info:");

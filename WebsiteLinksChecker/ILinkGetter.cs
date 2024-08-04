@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker
+namespace WebsiteLinksChecker;
+
+public interface ILinkGetter
 {
-    public interface ILinkGetter
-    {
-        string ElementId { get; }
-
-        List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage);
-    }
+    Task<List<string>> ExtractUrlsAsync(string projectBaseUrl, string branch, string markdownContent);
 }
