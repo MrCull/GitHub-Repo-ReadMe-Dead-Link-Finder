@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker
+namespace LinksChecker;
+
+public interface ILinkChecker
 {
-    public interface ILinkChecker
-    {
-        string ElementId { get; }
-        Dictionary<string, HttpResponseMessage> CheckLinks(Uri uri);
-        Task<HttpResponseMessage> GetHttpResponseAsync(Uri uriWithinPage);
-    }
+    Task<Dictionary<string, HttpResponseMessage>> CheckLinks(string projectBaseUrl, string branch);
+    Task<HttpResponseMessage> GetHttpResponseAsync(string urlWithinPage);
 }

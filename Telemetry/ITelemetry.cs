@@ -1,7 +1,6 @@
-﻿namespace TelemetryLib
+﻿namespace TelemetryLib;
+
+public interface ITelemetry
 {
-    public interface ITelemetry
-    {
-        void RecordSearch(string userTelemetryText);
-    }
+    void RecordSearch(string userTelemetryText);
 }

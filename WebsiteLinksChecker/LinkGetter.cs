@@ -1,111 +1,78 @@
-﻿using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace WebsiteLinksChecker
+namespace LinksChecker;
+
+public class LinkGetter : ILinkGetter
 {
-    public class LinkGetter : ILinkGetter
+    /// <summary>
+    /// This method serves as the async wrapper for the URL extraction process.
+    /// </summary>
+    /// <param name="projectBaseUrl">Base URL of the project.</param>
+    /// <param name="branch">Branch name for the repository.</param>
+    /// <param name="markdownContent">Markdown content as a string.</param>
+    /// <returns>List of URLs extracted from the markdown.</returns>
+    public async Task<List<string>> ExtractUrlsAsync(string projectBaseUrl, string branch, string markdownContent)
     {
-        private readonly HttpClient _httpClient;
-        public string ElementId { get; private set; }
+        return await Task.Run(() => ExtractUrls(projectBaseUrl, branch, markdownContent));
+    }
 
+    private List<string> ExtractUrls(string projectBaseUrl, string branch, string markdownContent)
+    {
+        List<string> urls = [];
+        // 
+        string projectBlobUrl = ConvertProjectUrlToBlobUrl(projectBaseUrl, branch);
 
-        public LinkGetter(HttpClient httpClient, string elementId)
+        // Regex to extract URLs encapsulated in parentheses, capturing absolute and relative paths
+        Regex regex = new(@"\[[^\]]+\]\(((http[^)]+)|([^)]+))\)");
+        MatchCollection matches = regex.Matches(markdownContent);
+
+        string urlToAdd = string.Empty;
+
+        // Process each match to extract URLs
+        foreach (Match match in matches)
         {
-            _httpClient = httpClient;
-            ElementId = elementId;
-        }
+            // Group 1 captures the entire URL in the Markdown link (both absolute and relative)
+            string path = match.Groups[1].Value;
+            path = path.TrimStart('/').TrimStart('<').TrimStart().TrimEnd('>');
 
-        public List<Uri> GetUrisOutOfPageFromMainUri(Uri uriForMainPage)
-        {
-            var urisFoundWithinPageFromMainUri = new List<Uri>();
-
-            try
+            if (path.StartsWith("http") || path.StartsWith("https"))
             {
-                HtmlDocument htmlDocumente = GetHtmlDocumentFromUri(uriForMainPage).Result;
-                HtmlNodeCollection htmlDocumentes = htmlDocumente.DocumentNode.SelectNodes("//a[@href]");
-
-                // If there are no links then htmlDocumentes will be null
-                if (htmlDocumentes != null)
-                {
-                    foreach (HtmlNode link in htmlDocumentes)
-                    {
-                        string uriWithinPage = link.Attributes["href"].Value;
-
-                        // If it's relative uri then combine with host path
-                        if (uriWithinPage.StartsWith(@"/"))
-                        {
-                            uriWithinPage = uriForMainPage.Scheme + Uri.SchemeDelimiter + uriForMainPage.Host + uriWithinPage;
-                        }
-
-                        if (Uri.IsWellFormedUriString(uriWithinPage, UriKind.RelativeOrAbsolute) && !uriWithinPage.Contains("mailto"))
-                        {
-                            if (!urisFoundWithinPageFromMainUri.Contains(new Uri(uriWithinPage)))
-                            {
-                                urisFoundWithinPageFromMainUri.Add(new Uri(uriWithinPage));
-                            }
-                        }
-                    }
-                }
+                // Absolute URL directly added
+                urlToAdd = path;
             }
-            catch (Exception e)
+            else if (!path.StartsWith("mailto"))
             {
-                Console.WriteLine(e);
+                // Relative URL, need to create a full URL
+                string relativePath = path.TrimStart('/').TrimStart('<');
+                Uri absoluteUrl = new($"{projectBlobUrl}/{relativePath}");
+                urlToAdd = absoluteUrl.ToString();
             }
 
-            return urisFoundWithinPageFromMainUri;
-        }
-
-        private async Task<HtmlDocument> GetHtmlDocumentFromUri(Uri uriForMainPage)
-        {
-            HttpResponseMessage httpResponseMessage;
-            HttpStatusCode httpStatusCode = HttpStatusCode.OK;
-            int loopLimit = 10;
-            int numberOfLoops = 0;
-            do
+            if (!string.IsNullOrEmpty(urlToAdd) && !urls.Contains(urlToAdd))
             {
-                numberOfLoops += 1;
-                if (numberOfLoops > loopLimit)
-                {
-                    throw new TooManyRequestsLoopsException($"Loop limit exceeded for 429:TooManyRequests for {uriForMainPage}");
-                }
-
-                httpResponseMessage = await _httpClient.GetAsync(uriForMainPage);
-                if (httpStatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    Console.WriteLine($"{HttpStatusCode.TooManyRequests} received from server for {uriForMainPage} so sleeping for 10 seconds before trying again");
-                    Thread.Sleep(10000);
-                }
-            } while (httpStatusCode == HttpStatusCode.TooManyRequests);
-
-            string rawHtml = await httpResponseMessage.Content.ReadAsStringAsync();
-
-            HtmlDocument htmlDocumente = GetHtmlDocument(rawHtml);
-
-            return htmlDocumente;
-        }
-
-        private HtmlDocument GetHtmlDocument(string rawHtml)
-        {
-            var htmlDocumente = new HtmlDocument();
-            htmlDocumente.LoadHtml(rawHtml);
-
-            if (ElementId != null)
-            {
-                HtmlNode documentElement = htmlDocumente.GetElementbyId(ElementId);
-                if (documentElement == null)
-                {
-                    throw new ElementIdNotFoundException($"ElementId [{ElementId}] not found in document");
-                }
-                htmlDocumente.LoadHtml(documentElement.InnerHtml);
+                urls.Add(urlToAdd);
             }
-
-            return htmlDocumente;
         }
 
+        return urls;
+    }
+
+    /// <summary>
+    /// Converts:
+    /// https://github.com/user/project/
+    /// To
+    /// https://github.com/user/project/blob/main
+    /// </summary>
+    /// <param name="projectBaseUrl"></param>
+    /// <param name="branch"></param>
+    /// <returns></returns>
+    private string ConvertProjectUrlToBlobUrl(string projectBaseUrl, string branch)
+    {
+        string blobUrl = projectBaseUrl;
+        blobUrl += $"/blob/{branch}";
+        return blobUrl;
     }
 }

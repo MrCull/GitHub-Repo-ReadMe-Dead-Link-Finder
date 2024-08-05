@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 
-namespace DeadLinkFinderWeb.Models
+namespace DeadLinkFinderWeb.Models;
+
+public class UriStatus
 {
-    public class UriStatus
-    {
-        public string UriText { get; set; }
-        public HttpStatusCode HttpStatusCode { get; set; }
-        public string HttpStatusCodeText { get; set; }
-    }
-
+    public string UriText { get; set; }
+    public HttpStatusCode HttpStatusCode { get; set; }
+    public string HttpStatusCodeText { get; set; }
 }
