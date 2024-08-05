@@ -63,11 +63,11 @@
 
 
     @if (Model != null)
-    {
-        <div class="col-sm-9">
+{
+    <div class="col-sm-9">
             <div class="container">
                 <div id="accordion">
-                    @foreach (var uri in Model.Uris)
+                    @foreach (var uri in Model.RepoUrlsAndDefaultBranch.Select(u => u.RepoUri))
                     {
                         <div class="card">
                             <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
@@ -88,7 +88,7 @@
                 </div>
             </div>
         </div>
-    }
+}
 
 </div>
 
@@ -96,11 +96,11 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
-            function CheckRepo(uri) {
+            function CheckRepo(uri, branch) {
             $.ajax({
                 type: 'GET',
                 url: '@Url.Action("CheckRepo")',
-                data: { 'uri': uri },
+                data: { 'projectBaseUrl': uri, 'branch': branch },
                 dataType: "json",
                 cache: false,
                 success: function (data) {
@@ -154,7 +154,7 @@
                     $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
 
 
-                    if (@(Model?.Uris.Count ?? 0) != 1) {
+                    if (@(Model?.RepoUrlsAndDefaultBranch.Count ?? 0) != 1) {
                         $('#collapse_' + ConvertUriToValidId(uri)).collapse();
                     }
 
@@ -194,14 +194,14 @@
 
 
     @if (Model != null)
+{
+    @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
     {
-        @foreach (var uri in Model.Uris)
-        {
-            <script>
-                CheckRepo('@uri');
+        <script>
+                CheckRepo('@repoUrlAndDefaultBranch.RepoUri', '@repoUrlAndDefaultBranch.Branch');
             </script>
-        }
     }
+}
 
 
 }

@@ -1,10 +1,9 @@
-﻿namespace TelemetryLib
+﻿namespace TelemetryLib;
+
+public class EmailMessage
 {
-    public class EmailMessage
-    {
-        public EmailAddress ToAddresse { get; set; }
-        public EmailAddress FromAddress { get; set; }
-        public string Subject { get; set; }
-        public string Content { get; set; }
-    }
+    public EmailAddress ToAddresse { get; set; }
+    public EmailAddress FromAddress { get; set; }
+    public string Subject { get; set; }
+    public string Content { get; set; }
 }

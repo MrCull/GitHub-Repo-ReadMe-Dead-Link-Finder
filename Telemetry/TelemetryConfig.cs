@@ -1,8 +1,7 @@
-﻿namespace TelemetryLib
+﻿namespace TelemetryLib;
+
+public class TelemetryConfig
 {
-    public class TelemetryConfig
-    {
-        public bool TelemetryEnabledEmail { get; set; }
-        public bool TelemetryEnabledFile { get; set; }
-    }
+    public bool TelemetryEnabledEmail { get; set; }
+    public bool TelemetryEnabledFile { get; set; }
 }
