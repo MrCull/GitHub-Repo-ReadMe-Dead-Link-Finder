@@ -2,12 +2,10 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace LinksChecker
+namespace LinksChecker;
+
+public interface ILinkChecker
 {
-    public interface ILinkChecker
-    {
-        string ElementId { get; }
-        Task<Dictionary<string, HttpResponseMessage>> CheckLinks(string projectBaseUrl, string branch, string markdownContent);
-        Task<HttpResponseMessage> GetHttpResponseAsync(string urlWithinPage);
-    }
+    Task<Dictionary<string, HttpResponseMessage>> CheckLinks(string projectBaseUrl, string branch);
+    Task<HttpResponseMessage> GetHttpResponseAsync(string urlWithinPage);
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace LinksChecker
+namespace LinksChecker;
+
+public class TooManyRequestsLoopsException : Exception
 {
-    public class TooManyRequestsLoopsException : Exception
+    public TooManyRequestsLoopsException(string message) : base(message)
     {
-        public TooManyRequestsLoopsException(string message) : base(message)
-        {
-        }
     }
 }

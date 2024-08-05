@@ -9,7 +9,9 @@ namespace LinksCheckerTest;
 [TestFixture]
 public class LinkGetterTest
 {
-    private const string projectBaseUrl = "https://github.com/user/project/";
+    private const string projectBaseUrl = "https://github.com/user/project";
+    readonly string rawProjectBaseUrlWithBranch = "https://raw.githubusercontent.com/user/project/main";
+    readonly string projectBlobUrlWithBranch = "https://github.com/user/project/blob/main";
     private const string branch = "main";
     private readonly ILinkGetter linkGetter = new LinkGetter();
 
@@ -116,7 +118,7 @@ public class LinkGetterTest
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Has.Count.EqualTo(2));
-        Assert.That(result, Contains.Item("https://github.com/user/project/blob/main/APITesterApp"));
+        Assert.That(result, Contains.Item($"{projectBlobUrlWithBranch}/APITesterApp"));
         Assert.That(result, Contains.Item("https://github.com"));
     }
 }

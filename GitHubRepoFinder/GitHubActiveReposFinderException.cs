@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace GitHubRepoFinder
+namespace GitHubRepoFinder;
+
+public class GitHubActiveReposFinderException : Exception
 {
-    public class GitHubActiveReposFinderException : Exception
+    public GitHubActiveReposFinderException(string message) : base(message)
     {
-        public GitHubActiveReposFinderException(string message) : base(message)
-        {
-        }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace TelemetryLib
+namespace TelemetryLib;
+
+public interface IEmailService
 {
-    public interface IEmailService
-    {
-        void Send(EmailMessage emailMessage);
-        List<EmailMessage> ReceiveEmail(int maxCount = 10);
-    }
+    void Send(EmailMessage emailMessage);
+    List<EmailMessage> ReceiveEmail(int maxCount = 10);
 }

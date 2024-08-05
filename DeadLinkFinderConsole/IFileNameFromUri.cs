@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace DeadLinkFinderConsole
+namespace DeadLinkFinderConsole;
+
+public interface IFileNameFromUri
 {
-    public interface IFileNameFromUri
-    {
-        string ConvertToWindowsFileName(Uri urlText);
-    }
+    string ConvertToWindowsFileName(Uri urlText);
 }

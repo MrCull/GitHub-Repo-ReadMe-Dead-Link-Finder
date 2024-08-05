@@ -32,11 +32,17 @@ namespace DeadLinkFinderWeb.Models
 
         public bool IncludeForks { get; set; } = false;
 
-        public List<Uri> Uris;
+        public List<RepoUrlAndDefaultBranch> RepoUrlsAndDefaultBranch;
+
+        public class RepoUrlAndDefaultBranch
+        {
+            public Uri RepoUri { get; set; }
+            public string Branch { get; set; }
+        }
 
         public RepoCheckerModel()
         {
-            Uris = new List<Uri>();
+            RepoUrlsAndDefaultBranch = [];
         }
 
         public enum RepoSearchSort
@@ -54,7 +60,7 @@ namespace DeadLinkFinderWeb.Models
 
         public override string ToString()
         {
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
 
             output.AppendLine($"NumberOfReposToSearchFor : {NumberOfReposToSearchFor}");
             output.AppendLine($"SingleRepoUri : {SingleRepoUri}");
