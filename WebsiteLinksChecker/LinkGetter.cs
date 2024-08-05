@@ -22,29 +22,38 @@ public class LinkGetter : ILinkGetter
     private List<string> ExtractUrls(string projectBaseUrl, string branch, string markdownContent)
     {
         List<string> urls = [];
-
-        // Convert project base URL to a raw content URL for GitHub
-        Uri rawBase = TransformProjectUrlToRaw(projectBaseUrl, branch);
+        // 
+        string projectBlobUrl = ConvertProjectUrlToBlobUrl(projectBaseUrl, branch);
 
         // Regex to extract URLs encapsulated in parentheses, capturing absolute and relative paths
-        Regex regex = new(@"\((http[^)]+)|\(([^)]+)\)");
+        Regex regex = new(@"\[[^\]]+\]\(((http[^)]+)|([^)]+))\)");
         MatchCollection matches = regex.Matches(markdownContent);
+
+        string urlToAdd = string.Empty;
 
         // Process each match to extract URLs
         foreach (Match match in matches)
         {
-            // Group 1 captures absolute URLs (http:// or https://)
-            if (match.Groups[1].Success)
+            // Group 1 captures the entire URL in the Markdown link (both absolute and relative)
+            string path = match.Groups[1].Value;
+            path = path.TrimStart('/').TrimStart('<').TrimStart().TrimEnd('>');
+
+            if (path.StartsWith("http") || path.StartsWith("https"))
             {
-                string url = match.Groups[1].Value;
-                urls.Add(url);
+                // Absolute URL directly added
+                urlToAdd = path;
             }
-            // Group 2 captures relative paths that start with '/'
-            else if (match.Groups[2].Success)
+            else if (!path.StartsWith("mailto"))
             {
-                string relativePath = match.Groups[2].Value.TrimStart('/');
-                Uri absoluteUrl = new(rawBase, relativePath);
-                urls.Add(absoluteUrl.ToString());
+                // Relative URL, need to create a full URL
+                string relativePath = path.TrimStart('/').TrimStart('<');
+                Uri absoluteUrl = new($"{projectBlobUrl}/{relativePath}");
+                urlToAdd = absoluteUrl.ToString();
+            }
+
+            if (!string.IsNullOrEmpty(urlToAdd) && !urls.Contains(urlToAdd))
+            {
+                urls.Add(urlToAdd);
             }
         }
 
@@ -52,21 +61,18 @@ public class LinkGetter : ILinkGetter
     }
 
     /// <summary>
-    /// Convert the GitHub project URL to a raw content URL for direct file access. 
-    /// For example, if the project URL is "https://github.com/user/repository/",
-    /// this method transforms it to "https://github.com/user/repository/blob/main/",
-    /// which is the base URL format for accessing raw content from the GitHub repository.
+    /// Converts:
+    /// https://github.com/user/project/
+    /// To
+    /// https://github.com/user/project/blob/main
     /// </summary>
-    /// <param name="projectBaseUrl">The project's base URL.</param>
-    /// <param name="branch">The repository branch.</param>
-    /// <returns>Uri object of the transformed base URL.</returns>
-    private static Uri TransformProjectUrlToRaw(string projectBaseUrl, string branch)
+    /// <param name="projectBaseUrl"></param>
+    /// <param name="branch"></param>
+    /// <returns></returns>
+    private string ConvertProjectUrlToBlobUrl(string projectBaseUrl, string branch)
     {
-        Uri projectBaseUri = new(projectBaseUrl);
-        string[] segments = projectBaseUri.AbsolutePath.Trim('/').Split('/');
-        string user = segments[0];
-        string repository = segments[1];
-        string rawUrl = $"https://github.com/{user}/{repository}/blob/{branch}/";
-        return new Uri(rawUrl);
+        string blobUrl = projectBaseUrl;
+        blobUrl += $"/blob/{branch}";
+        return blobUrl;
     }
 }

@@ -7,68 +7,68 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace DeadLinkFinderConsole
+namespace DeadLinkFinderConsole;
+
+class Startup
 {
-    class Startup
+    public static IConfigurationRoot Configuration { get; set; }
+
+    public static void ConfigureServices(IServiceCollection services)
     {
-        public static IConfigurationRoot Configuration { get; set; }
+        services.AddSingleton(Configuration);
+        services.AddSingleton(new GitHubClient(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes")));
 
-        public static void ConfigureServices(IServiceCollection services)
+        services.AddSingleton(new SearchRepositoriesRequest()
         {
-            services.AddSingleton(Configuration);
-            services.AddSingleton(new GitHubClient(new ProductHeaderValue("GitHub-repo-finder-for-dead-links-in-readmes")));
+            // lets find a library with over ? stars
+            Stars = Octokit.Range.GreaterThan(100),
+            //Stars = Octokit.Range.LessThan(1),
 
-            services.AddSingleton(new SearchRepositoriesRequest()
-            {
-                // lets find a library with over ? stars
-                Stars = Octokit.Range.GreaterThan(100),
-                //Stars = Octokit.Range.LessThan(1),
+            // check for repos that have been updated between a given date range?
+            Updated = DateRange.Between(DateTimeOffset.UtcNow.AddHours(-1), DateTimeOffset.UtcNow),
 
-                // check for repos that have been updated between a given date range?
-                Updated = DateRange.Between(DateTimeOffset.UtcNow.AddHours(-1), DateTimeOffset.UtcNow),
+            // orrder by?
+            SortField = RepoSearchSort.Updated,
+            Order = SortDirection.Descending,
+        });
 
-                // orrder by?
-                SortField = RepoSearchSort.Updated,
-                Order = SortDirection.Descending,
-            });
+        services.AddHttpClient();
 
-            services.AddHttpClient();
+        services.AddScoped<ILinkGetter, LinkGetter>();
+        services.AddScoped<ILinkChecker, LinkChecker>();
+        services.AddScoped<IMarkdownGetter, ReadMeMarkdownGetter>();
 
-            services.AddScoped<ILinkGetter, LinkGetter>();
-            services.AddScoped<ILinkChecker, LinkChecker>();
-
-            services.AddTransient<ProgramUI, ProgramUI>();
-            services.AddTransient<IFileNameFromUri, FileNameFromUri>();
+        services.AddTransient<ProgramUI, ProgramUI>();
+        services.AddTransient<IFileNameFromUri, FileNameFromUri>();
 
 
-            services.AddSingleton<IUriFinder, GitHubActiveReposFinder>();
+        services.AddSingleton<IRepoFinder, GitHubActiveReposFinder>();
+    }
+
+    static void Main(string[] args)
+    {
+        ServiceCollection services = new();
+        Configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        ConfigureServices(services);
+        ServiceProvider provider = services.BuildServiceProvider();
+
+        Task task = Task.Run(async () =>
+        {
+            ProgramUI program = provider.GetRequiredService<ProgramUI>();
+            await program.RunAsync();
+        });
+
+        try
+        {
+            task.Wait();
         }
-
-        static void Main(string[] args)
+        catch (AggregateException ae)
         {
-            ServiceCollection services = new();
-            Configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            ConfigureServices(services);
-            ServiceProvider provider = services.BuildServiceProvider();
-
-            Task task = Task.Run(async () =>
-            {
-                ProgramUI program = provider.GetRequiredService<ProgramUI>();
-                await program.RunAsync();
-            });
-
-            try
-            {
-                task.Wait();
-            }
-            catch (AggregateException ae)
-            {
-                Console.WriteLine(ae);
-                throw ae.InnerException;
-            }
+            Console.WriteLine(ae);
+            throw ae.InnerException;
         }
     }
 }
