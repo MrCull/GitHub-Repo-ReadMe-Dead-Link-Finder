@@ -4,7 +4,7 @@ module.exports = defineConfig({
   devServer: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Your ASP.NET Core backend URL
+        target: 'https://localhost:44389/', // Your ASP.NET Core backend URL
         changeOrigin: true
       }
     }

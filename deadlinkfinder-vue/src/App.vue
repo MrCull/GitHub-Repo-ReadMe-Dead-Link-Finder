@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import RepoSearch from './components/RepoSearch.vue'
 import RepoList from './components/RepoList.vue'
 
@@ -22,20 +23,23 @@ export default {
     }
   },
   methods: {
-    handleSearch(searchForm) {
-      // Here you would typically make an API call to your backend
-      // For now, we'll just simulate the response
-      if (searchForm.singleRepoUri) {
-        this.repos = [{
-          repoUri: searchForm.singleRepoUri,
-          branch: 'main'
-        }]
-      } else {
-        // Simulate fetching multiple repos
-        this.repos = Array(searchForm.numberOfReposToSearchFor).fill().map((_, i) => ({
-          repoUri: `https://github.com/example/repo-${i + 1}`,
-          branch: 'main'
+    async handleSearch(searchForm) {
+      try {
+        const response = await axios.get('/api/Home/Search', {
+          params: {
+            SingleRepoUri: searchForm.singleRepoUri,
+            User: searchForm.user,
+            NumberOfReposToSearchFor: searchForm.numberOfReposToSearchFor
+          }
+        })
+        
+        this.repos = response.data.repoUrlsAndDefaultBranch.map(repo => ({
+          repoUri: repo.repoUri,
+          branch: repo.branch
         }))
+      } catch (error) {
+        console.error('Error fetching repos:', error)
+        // You might want to add error handling here, such as displaying an error message to the user
       }
     }
   }
