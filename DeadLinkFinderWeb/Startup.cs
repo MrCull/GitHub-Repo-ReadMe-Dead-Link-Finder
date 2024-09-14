@@ -43,6 +43,15 @@ public class Startup
 
         services.AddTransient(s => new GitHubActiveReposFinder(gitHubClient));
 
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
 
         services.AddControllersWithViews();
     }
@@ -63,6 +72,7 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
+        app.UseCors();
         app.UseRouting();
 
         app.UseAuthorization();
