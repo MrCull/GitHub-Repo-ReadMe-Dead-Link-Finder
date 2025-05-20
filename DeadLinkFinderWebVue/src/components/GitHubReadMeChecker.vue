@@ -180,17 +180,17 @@ const toggleFavorite = (repo: RepoInfo) => {
   <div class="github-readme-checker">
     <ThemeToggle />
     
-    <SearchForm 
-      :is-loading="isLoading"
-      @search="searchRepos"
-    />
+    <div class="input-section">
+      <SearchForm 
+        :is-loading="isLoading"
+        @search="searchRepos"
+      />
 
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
 
-    <div v-if="repos.length" class="results-section">
-      <div class="repo-filter">
+      <div v-if="repos.length" class="repo-filter">
         <input 
           v-model="repoFilter"
           type="text"
@@ -198,20 +198,21 @@ const toggleFavorite = (repo: RepoInfo) => {
           :disabled="isLoading"
         />
       </div>
+    </div>
 
-      <div class="repos-list">
-        <RepoCard 
-          v-for="repo in filteredRepos"
-          :key="repo.name"
-          :repo="repo"
-          :is-selected="selectedRepo?.name === repo.name"
-          :is-loading="loadingRepos.has(repo.name)"
-          @select="selectedRepo = repo"
-        />
-      </div>
+    <div v-if="repos.length" class="repos-list">
+      <RepoCard 
+        v-for="repo in filteredRepos"
+        :key="repo.name"
+        :repo="repo"
+        :is-selected="selectedRepo?.name === repo.name"
+        :is-loading="loadingRepos.has(repo.name)"
+        @select="selectedRepo = repo"
+      />
+    </div>
 
+    <div v-if="selectedRepo" class="links-section">
       <LinkList
-        v-if="selectedRepo"
         :repo-name="selectedRepo.name"
         :links="selectedRepo.links"
         v-model:filter="linkFilter"
@@ -272,53 +273,43 @@ const toggleFavorite = (repo: RepoInfo) => {
   box-sizing: border-box;
 }
 
-.repo-filter {
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.repo-filter input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  font-size: 1.1em;
-}
-
-.repos-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+.input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
   margin-bottom: 30px;
   width: 100%;
 }
 
-@media (max-width: 1400px) {
-  .repos-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .repos-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-.error-message {
-  color: var(--error-color);
-  margin: 20px 0;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: var(--error-bg);
+.repo-filter {
   width: 100%;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+}
+
+.repo-filter input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1em;
+}
+
+.repos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+  width: 100%;
+  justify-content: center;
 }
 
 .repo-card {
-  width: 100%;
-  min-width: 0;
+  flex: 0 0 300px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
@@ -333,5 +324,26 @@ const toggleFavorite = (repo: RepoInfo) => {
 
 .repo-card.loading {
   opacity: 0.7;
+}
+
+.error-message {
+  color: var(--error-color);
+  margin: 20px 0;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: var(--error-bg);
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Add styles for the links section */
+.links-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 </style>
