@@ -65,6 +65,7 @@ const filteredRepos = computed(() => {
   // Check links for newly displayed repos
   displayRepos.forEach(repo => {
     if (!checkedRepos.has(repo.name)) {
+      loadingRepos.add(repo.name)
       checkRepoLinks(repo)
     }
   })
@@ -105,14 +106,11 @@ const searchRepos = async (username: string) => {
       links: []
     }))
 
-    // Auto-select first repo
+    // Auto-select first repo and check its links
     if (repos.value.length > 0) {
       selectedRepo.value = repos.value[0]
-      // Start checking links for the first repo immediately
       loadingRepos.add(repos.value[0].name)
       await checkRepoLinks(repos.value[0])
-      loadingRepos.delete(repos.value[0].name)
-      checkedRepos.add(repos.value[0].name)
     }
   } catch (err) {
     error.value = 'Error fetching repositories'
@@ -123,9 +121,6 @@ const searchRepos = async (username: string) => {
 }
 
 const checkRepoLinks = async (repo: RepoInfo) => {
-  if (loadingRepos.has(repo.name)) return // Prevent duplicate checks
-  
-  loadingRepos.add(repo.name)
   try {
     const response = await fetch(getApiUrl(`/Home/CheckRepo?projectBaseUrl=${encodeURIComponent(`https://github.com/${currentUsername.value}/${repo.name}`)}&branch=${repo.defaultBranch}`), {
       method: 'GET',

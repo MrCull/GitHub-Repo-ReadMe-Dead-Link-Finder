@@ -90,6 +90,7 @@ const toggleType = (type: 'bad' | 'warning' | 'ok') => {
   background-color: var(--card-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  width: 100%;
 }
 
 .filter-controls {
@@ -139,12 +140,11 @@ const toggleType = (type: 'bad' | 'warning' | 'ok') => {
 }
 
 .link-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: var(--input-bg);
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  background-color: var(--card-bg);
 }
 
 .link-item.bad {
@@ -160,10 +160,9 @@ const toggleType = (type: 'bad' | 'warning' | 'ok') => {
 }
 
 .link-status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
 }
 
 .status-code {
@@ -176,9 +175,10 @@ const toggleType = (type: 'bad' | 'warning' | 'ok') => {
 }
 
 .link-url {
-  color: var(--link-color);
+  color: #2563eb; /* Always blue */
   text-decoration: none;
   word-break: break-all;
+  font-size: 1.1em;
 }
 
 .link-url:hover {

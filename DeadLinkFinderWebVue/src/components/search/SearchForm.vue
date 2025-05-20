@@ -158,11 +158,12 @@ const handleSearchInput = (event: Event) => {
 
 <style scoped>
 .search-form {
-  width: 100%;
-  max-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .search-container {
@@ -172,61 +173,78 @@ const handleSearchInput = (event: Event) => {
 
 .search-input {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
 .search-input input {
   flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 16px 20px;
+  font-size: 1.2em;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
   background-color: var(--input-bg);
   color: var(--text-color);
-  font-size: 1.1em;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-input input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-weight: 400;
 }
 
 .search-button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 4px;
+  padding: 16px 28px;
+  font-size: 1.2em;
   background-color: var(--primary-color);
   color: white;
-  font-weight: 500;
-  font-size: 1.1em;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .search-button:hover {
   background-color: var(--primary-color-dark);
+  transform: translateY(-1px);
 }
 
 .search-button:disabled {
   background-color: var(--disabled-color);
   cursor: not-allowed;
+  transform: none;
 }
 
 .clear-button {
-  padding: 12px 20px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 16px 28px;
+  font-size: 1.2em;
   background-color: var(--button-bg);
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 1.1em;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .clear-button:hover {
   background-color: var(--button-hover-bg);
-  color: var(--text-color);
+  transform: translateY(-1px);
 }
 
 .clear-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .users-dropdown {
@@ -236,20 +254,20 @@ const handleSearchInput = (event: Event) => {
   right: 0;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 16px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .user-item:hover {
@@ -259,33 +277,36 @@ const handleSearchInput = (event: Event) => {
 .selected-user {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 16px;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  margin-top: 10px;
+  border-radius: 12px;
+  margin-top: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  margin-right: 12px;
+  margin-right: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .username {
   font-weight: 600;
-  font-size: 1.1em;
+  font-size: 1.2em;
   color: var(--text-color);
 }
 
 .type {
-  font-size: 0.9em;
+  font-size: 1em;
   color: var(--text-secondary);
 }
 
