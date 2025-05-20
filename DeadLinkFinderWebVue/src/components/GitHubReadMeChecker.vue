@@ -213,7 +213,7 @@ const clearResults = () => {
         <input 
           v-model="repoFilter"
           type="text"
-          placeholder="Filter repositories..."
+          :placeholder="`Filter ${repos.length} repositories...`"
           :disabled="isLoading"
         />
       </div>
@@ -406,5 +406,11 @@ const clearResults = () => {
   .repos-list {
     grid-template-columns: 1fr;
   }
+}
+
+.search-form {
+  width: 80%;
+  max-width: 640px;
+  margin: 0 auto;
 }
 </style>
