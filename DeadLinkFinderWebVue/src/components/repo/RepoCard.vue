@@ -1,77 +1,79 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-interface Props {
-  repo: {
-    name: string
-    stars: number
-    forks: number
-    lastUpdated: string
-    defaultBranch: string
-    linkStats: {
-      bad: number
-      warning: number
-      ok: number
-    }
-    isFavorite?: boolean
+interface RepoInfo {
+  name: string
+  stars: number
+  forks: number
+  lastUpdated: string
+  defaultBranch: string
+  linkStats: {
+    bad: number
+    warning: number
+    ok: number
   }
+  links: LinkInfo[]
 }
 
-const props = defineProps<Props>()
+interface LinkInfo {
+  url: string
+  statusCode: number
+  statusText: string
+  type: 'bad' | 'warning' | 'ok'
+}
+
+const props = defineProps<{
+  repo: RepoInfo
+  isSelected: boolean
+  isLoading: boolean
+}>()
+
 const emit = defineEmits<{
   (e: 'select'): void
-  (e: 'toggle-favorite'): void
 }>()
 
 const formattedDate = computed(() => {
   return new Date(props.repo.lastUpdated).toLocaleDateString()
-})
-
-const statusColor = computed(() => {
-  if (props.repo.linkStats.bad > 0) return 'var(--error-color)'
-  if (props.repo.linkStats.warning > 0) return 'var(--warning-color)'
-  return 'var(--success-color)'
 })
 </script>
 
 <template>
   <div 
     class="repo-card"
+    :class="{ 
+      'selected': isSelected,
+      'loading': isLoading
+    }"
     @click="emit('select')"
   >
     <div class="repo-header">
-      <h3>{{ repo.name }}</h3>
-      <button 
-        class="favorite-btn"
-        @click.stop="emit('toggle-favorite')"
-        :class="{ 'is-favorite': repo.isFavorite }"
-      >
-        {{ repo.isFavorite ? '★' : '☆' }}
-      </button>
+      <h3 class="repo-name">{{ repo.name }}</h3>
+      <div v-if="isLoading" class="loading-spinner"></div>
     </div>
     
     <div class="repo-stats">
-      <span title="Stars">⭐ {{ repo.stars }}</span>
-      <span title="Forks">🍴 {{ repo.forks }}</span>
-      <span title="Last Updated">🕒 {{ formattedDate }}</span>
+      <span class="stat" title="Stars">⭐ {{ repo.stars }}</span>
+      <span class="stat" title="Forks">🍴 {{ repo.forks }}</span>
+      <span class="stat" title="Last Updated">🕒 {{ formattedDate }}</span>
     </div>
     
     <div class="link-stats">
-      <span class="bad" title="Broken Links">❌ {{ repo.linkStats.bad }}</span>
+      <span class="bad" title="Bad Links">❌ {{ repo.linkStats.bad }}</span>
       <span class="warning" title="Warning Links">⚠️ {{ repo.linkStats.warning }}</span>
-      <span class="ok" title="Working Links">✅ {{ repo.linkStats.ok }}</span>
+      <span class="ok" title="OK Links">✅ {{ repo.linkStats.ok }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
 .repo-card {
-  padding: 20px;
+  cursor: pointer;
+  min-width: 400px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 20px;
   background-color: var(--card-bg);
+  transition: all 0.2s ease;
 }
 
 .repo-card:hover {
@@ -79,41 +81,68 @@ const statusColor = computed(() => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.repo-card.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.repo-card.loading {
+  opacity: 0.7;
+}
+
 .repo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-.favorite-btn {
-  background: none;
-  border: none;
-  font-size: 1.5em;
-  cursor: pointer;
+.repo-name {
+  margin: 0;
+  font-size: 1.3em;
   color: var(--text-color);
-  transition: color 0.2s;
+  font-weight: 600;
 }
 
-.favorite-btn.is-favorite {
-  color: var(--warning-color);
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .repo-stats {
   display: flex;
-  gap: 15px;
-  margin: 10px 0;
+  gap: 25px;
+  margin-bottom: 15px;
   color: var(--text-secondary);
+  font-size: 1em;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .link-stats {
   display: flex;
   gap: 15px;
+  font-size: 1em;
 }
 
 .link-stats span {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 4px;
+  font-weight: 500;
 }
 
 .link-stats .bad {

@@ -45,6 +45,7 @@ const linkFilter = ref<LinkFilter>('all')
 const repoFilter = ref('')
 const checkedRepos = new Set<string>()
 const currentUsername = ref('')
+const loadingRepos = new Set<string>()
 
 const filteredRepos = computed(() => {
   let filtered = repos.value
@@ -57,7 +58,10 @@ const filteredRepos = computed(() => {
   // Check links for newly displayed repos
   displayRepos.forEach(repo => {
     if (!checkedRepos.has(repo.name)) {
-      checkRepoLinks(repo)
+      loadingRepos.add(repo.name)
+      checkRepoLinks(repo).finally(() => {
+        loadingRepos.delete(repo.name)
+      })
       checkedRepos.add(repo.name)
     }
   })
@@ -72,6 +76,7 @@ const searchRepos = async (username: string) => {
   selectedRepo.value = null
   repoFilter.value = ''
   checkedRepos.clear()
+  loadingRepos.clear()
   currentUsername.value = username
   
   try {
@@ -94,16 +99,13 @@ const searchRepos = async (username: string) => {
         warning: 0,
         ok: 0
       },
-      links: [],
-      isFavorite: false
+      links: []
     }))
 
-    // Load favorites from localStorage
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-    repos.value = repos.value.map(repo => ({
-      ...repo,
-      isFavorite: favorites.includes(repo.name)
-    }))
+    // Auto-select first repo
+    if (repos.value.length > 0) {
+      selectedRepo.value = repos.value[0]
+    }
   } catch (err) {
     error.value = 'Error fetching repositories'
     console.error(err)
@@ -128,14 +130,24 @@ const checkRepoLinks = async (repo: RepoInfo) => {
     
     const apiLinks: ApiLinkResponse[] = await response.json()
     
-    // Map API response to our LinkInfo type
-    const links: LinkInfo[] = apiLinks.map(link => ({
-      url: link.uriText,
-      statusCode: link.httpStatusCode,
-      statusText: link.httpStatusCodeText,
-      type: link.httpStatusCode >= 400 ? 'bad' : 
-            link.httpStatusCode >= 300 ? 'warning' : 'ok'
-    }))
+    // Map API response to our LinkInfo type and sort
+    const links: LinkInfo[] = apiLinks
+      .map(link => ({
+        url: link.uriText,
+        statusCode: link.httpStatusCode,
+        statusText: link.httpStatusCodeText,
+        type: link.httpStatusCode >= 400 ? 'bad' as const : 
+              link.httpStatusCode >= 300 ? 'warning' as const : 'ok' as const
+      }))
+      .sort((a, b) => {
+        // First sort by type (bad > warning > ok)
+        const typeOrder: Record<LinkInfo['type'], number> = { bad: 0, warning: 1, ok: 2 }
+        const typeComparison = typeOrder[a.type] - typeOrder[b.type]
+        if (typeComparison !== 0) return typeComparison
+        
+        // Then sort alphabetically by URL
+        return a.url.localeCompare(b.url)
+      })
     
     repo.links = links
     repo.linkStats = {
@@ -192,8 +204,9 @@ const toggleFavorite = (repo: RepoInfo) => {
           v-for="repo in filteredRepos"
           :key="repo.name"
           :repo="repo"
+          :is-selected="selectedRepo?.name === repo.name"
+          :is-loading="loadingRepos.has(repo.name)"
           @select="selectedRepo = repo"
-          @toggle-favorite="toggleFavorite(repo)"
         />
       </div>
 
@@ -251,49 +264,47 @@ const toggleFavorite = (repo: RepoInfo) => {
 }
 
 .github-readme-checker {
-  max-width: 1200px;
-  margin: 0 auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100vw;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .repo-filter {
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .repo-filter input {
   width: 100%;
-  max-width: 300px;
-  padding: 8px;
+  padding: 12px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: var(--input-bg);
   color: var(--text-color);
+  font-size: 1.1em;
 }
 
 .repos-list {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 30px;
-  overflow-x: auto;
-  padding-bottom: 10px;
+  width: 100%;
 }
 
-.repos-list::-webkit-scrollbar {
-  height: 8px;
+@media (max-width: 1400px) {
+  .repos-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.repos-list::-webkit-scrollbar-track {
-  background: var(--button-bg);
-  border-radius: 4px;
-}
-
-.repos-list::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 4px;
-}
-
-.repos-list::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-color-dark);
+@media (max-width: 900px) {
+  .repos-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .error-message {
@@ -302,5 +313,25 @@ const toggleFavorite = (repo: RepoInfo) => {
   padding: 10px;
   border-radius: 4px;
   background-color: var(--error-bg);
+  width: 100%;
+}
+
+.repo-card {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  background-color: var(--card-bg);
+  transition: all 0.2s ease;
+}
+
+.repo-card.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.repo-card.loading {
+  opacity: 0.7;
 }
 </style>

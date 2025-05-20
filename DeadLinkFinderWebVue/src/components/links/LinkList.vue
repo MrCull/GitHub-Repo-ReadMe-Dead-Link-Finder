@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface LinkInfo {
   url: string
@@ -8,145 +8,180 @@ interface LinkInfo {
   type: 'bad' | 'warning' | 'ok'
 }
 
-interface Props {
+const props = defineProps<{
   repoName: string
   links: LinkInfo[]
-  filter: 'all' | 'bad' | 'warning' | 'ok'
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  (e: 'update:filter', value: 'all' | 'bad' | 'warning' | 'ok'): void
 }>()
 
+const emit = defineEmits<{
+  (e: 'update:filter', value: Set<'bad' | 'warning' | 'ok'>): void
+}>()
+
+const showTypes = ref<Set<'bad' | 'warning' | 'ok'>>(new Set(['bad', 'warning', 'ok']))
+
 const filteredLinks = computed(() => {
-  if (props.filter === 'all') return props.links
-  return props.links.filter(link => link.type === props.filter)
+  return props.links.filter(link => showTypes.value.has(link.type))
 })
 
-const filterOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'bad', label: 'Bad' },
-  { value: 'warning', label: 'Warning' },
-  { value: 'ok', label: 'OK' }
-] as const
+const toggleType = (type: 'bad' | 'warning' | 'ok') => {
+  if (showTypes.value.has(type)) {
+    showTypes.value.delete(type)
+  } else {
+    showTypes.value.add(type)
+  }
+  emit('update:filter', showTypes.value)
+}
 </script>
 
 <template>
-  <div class="links-section">
-    <div class="links-header">
-      <h3>Links for {{ repoName }}</h3>
-      <div class="filter-controls">
-        <button 
-          v-for="option in filterOptions"
-          :key="option.value"
-          :class="{ active: filter === option.value }"
-          @click="emit('update:filter', option.value)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
+  <div class="link-list">
+    <h3>Links for {{ repoName }}</h3>
     
-    <div class="links-list">
+    <div class="filter-controls">
+      <label class="filter-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="showTypes.has('bad')"
+          @change="toggleType('bad')"
+        />
+        <span class="bad">Bad</span>
+      </label>
+      <label class="filter-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="showTypes.has('warning')"
+          @change="toggleType('warning')"
+        />
+        <span class="warning">Warning</span>
+      </label>
+      <label class="filter-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="showTypes.has('ok')"
+          @change="toggleType('ok')"
+        />
+        <span class="ok">OK</span>
+      </label>
+    </div>
+
+    <div class="links">
       <div 
-        v-for="link in filteredLinks"
+        v-for="link in filteredLinks" 
         :key="link.url"
         class="link-item"
         :class="link.type"
       >
-        <a :href="link.url" target="_blank" rel="noopener noreferrer">
+        <div class="link-status">
+          <span class="status-code">{{ link.statusCode }}</span>
+          <span class="status-text">{{ link.statusText }}</span>
+        </div>
+        <a :href="link.url" target="_blank" rel="noopener noreferrer" class="link-url">
           {{ link.url }}
         </a>
-        <span class="status">
-          {{ link.statusCode }} - {{ link.statusText }}
-        </span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.links-section {
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+.link-list {
+  margin-top: 20px;
   padding: 20px;
   background-color: var(--card-bg);
-}
-
-.links-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .filter-controls {
   display: flex;
-  gap: 10px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.filter-controls button {
-  padding: 5px 10px;
-  background-color: var(--button-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.filter-controls button:hover {
-  background-color: var(--button-hover-bg);
+.filter-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
-.filter-controls button.active {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+.filter-checkbox span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
-.links-list {
+.filter-checkbox span.bad {
+  background-color: var(--error-bg);
+  color: var(--error-color);
+}
+
+.filter-checkbox span.warning {
+  background-color: var(--warning-bg);
+  color: var(--warning-color);
+}
+
+.filter-checkbox span.ok {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+.links {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .link-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
   padding: 10px;
   border-radius: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s;
+  background-color: var(--input-bg);
 }
 
 .link-item.bad {
-  background-color: var(--error-bg);
+  border-left: 4px solid var(--error-color);
 }
 
 .link-item.warning {
-  background-color: var(--warning-bg);
+  border-left: 4px solid var(--warning-color);
 }
 
 .link-item.ok {
-  background-color: var(--success-bg);
+  border-left: 4px solid var(--success-color);
 }
 
-.link-item a {
+.link-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.status-code {
+  font-weight: bold;
+}
+
+.status-text {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.link-url {
   color: var(--link-color);
   text-decoration: none;
   word-break: break-all;
-  margin-right: 10px;
 }
 
-.link-item a:hover {
+.link-url:hover {
   text-decoration: underline;
-}
-
-.status {
-  font-size: 0.9em;
-  color: var(--text-secondary);
-  white-space: nowrap;
 }
 </style> 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import GitHubReadMeChecker from './components/GitHubReadMeChecker.vue'
-import './assets/styles/global.css'
+import './assets/main.css'
 </script>
 
 <template>
@@ -10,9 +10,27 @@ import './assets/styles/global.css'
 </template>
 
 <style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 .app {
-  min-height: 100vh;
-  padding: 20px;
-  background-color: var(--card-bg);
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 </style>
