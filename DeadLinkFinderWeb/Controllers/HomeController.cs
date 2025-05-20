@@ -47,6 +47,11 @@ public class HomeController : Controller
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Search(RepoCheckerModel repoChecker)
     {
+        return View("Index", ApiSearch(repoChecker));
+    }
+
+    public object ApiSearch(RepoCheckerModel repoChecker)
+    {
         LogTelemetry(repoChecker);
 
         if (!string.IsNullOrWhiteSpace(repoChecker.SingleRepoUri))
@@ -102,7 +107,7 @@ public class HomeController : Controller
 
         }
 
-        return View("Index", repoChecker);
+        return Json(repoChecker);
     }
 
 

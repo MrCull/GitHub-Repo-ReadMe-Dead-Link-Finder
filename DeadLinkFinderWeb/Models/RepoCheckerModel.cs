@@ -32,7 +32,7 @@ namespace DeadLinkFinderWeb.Models
 
         public bool IncludeForks { get; set; } = false;
 
-        public List<RepoUrlAndDefaultBranch> RepoUrlsAndDefaultBranch;
+        public List<RepoUrlAndDefaultBranch> RepoUrlsAndDefaultBranch { get; set; }
 
         public class RepoUrlAndDefaultBranch
         {
