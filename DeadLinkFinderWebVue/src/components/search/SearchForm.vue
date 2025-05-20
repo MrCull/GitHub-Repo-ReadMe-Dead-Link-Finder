@@ -15,6 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'search', username: string): void
+  (e: 'clear'): void
 }>()
 
 const searchQuery = ref('')
@@ -79,6 +80,20 @@ const clearSelection = () => {
   selectedUser.value = null
   searchQuery.value = ''
   users.value = []
+  emit('clear')
+}
+
+const handleSearchInput = (event: Event) => {
+  const value = (event.target as HTMLInputElement).value
+  if (selectedUser.value && value !== selectedUser.value.login) {
+    clearSelection()
+  }
+  error.value = ''
+  if (value) {
+    debouncedSearch(value)
+  } else {
+    users.value = []
+  }
 }
 </script>
 
@@ -93,11 +108,12 @@ const clearSelection = () => {
           type="text"
           placeholder="Search GitHub users or organizations..."
           :disabled="isLoading"
+          @input="handleSearchInput"
         />
         <button 
           v-if="selectedUser"
           @click="clearSelection"
-          class="clear-btn"
+          class="clear-button"
           :disabled="isLoading"
         >
           Clear
@@ -142,53 +158,75 @@ const clearSelection = () => {
 
 <style scoped>
 .search-form {
-  margin-bottom: 30px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .search-container {
   position: relative;
+  width: 100%;
 }
 
 .search-input {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  width: 100%;
 }
 
-input {
+.search-input input {
   flex: 1;
-  padding: 10px;
+  padding: 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: var(--input-bg);
   color: var(--text-color);
+  font-size: 1.1em;
 }
 
-button {
-  padding: 10px 20px;
-  background-color: var(--primary-color);
-  color: white;
+.search-button {
+  padding: 12px 20px;
   border: none;
   border-radius: 4px;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+  font-size: 1.1em;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-button:hover {
+.search-button:hover {
   background-color: var(--primary-color-dark);
 }
 
-button:disabled {
+.search-button:disabled {
   background-color: var(--disabled-color);
   cursor: not-allowed;
 }
 
-.clear-btn {
-  background-color: var(--error-color);
+.clear-button {
+  padding: 12px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.clear-btn:hover {
-  background-color: var(--error-color-dark);
+.clear-button:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--text-color);
+}
+
+.clear-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .users-dropdown {
@@ -203,12 +241,13 @@ button:disabled {
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
+  margin-top: 5px;
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -220,18 +259,18 @@ button:disabled {
 .selected-user {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
 .user-info {
@@ -240,7 +279,9 @@ button:disabled {
 }
 
 .username {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 1.1em;
+  color: var(--text-color);
 }
 
 .type {
@@ -251,10 +292,27 @@ button:disabled {
 .error-message {
   color: var(--error-color);
   margin-top: 10px;
+  font-size: 1em;
 }
 
 .loading-message {
   color: var(--text-secondary);
   margin-top: 10px;
+  font-size: 1em;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style> 

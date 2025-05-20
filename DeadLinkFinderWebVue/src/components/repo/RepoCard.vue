@@ -48,19 +48,61 @@ const formattedDate = computed(() => {
   >
     <div class="repo-header">
       <h3 class="repo-name">{{ repo.name }}</h3>
-      <div v-if="isLoading" class="loading-spinner"></div>
+      <div class="header-actions">
+        <a 
+          :href="`https://github.com/${repo.name}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="repo-link"
+          @click.stop
+          title="Open in GitHub"
+        >
+          <i class="fab fa-github"></i>
+        </a>
+        <div v-if="isLoading" class="loading-spinner"></div>
+      </div>
     </div>
     
     <div class="repo-stats">
       <span class="stat" title="Stars">⭐ {{ repo.stars }}</span>
-      <span class="stat" title="Forks">🍴 {{ repo.forks }}</span>
+      <span class="stat" title="Forks">🔱 {{ repo.forks }}</span>
       <span class="stat" title="Last Updated">🕒 {{ formattedDate }}</span>
     </div>
     
     <div class="link-stats">
-      <span class="bad" title="Bad Links">❌ {{ repo.linkStats.bad }}</span>
-      <span class="warning" title="Warning Links">⚠️ {{ repo.linkStats.warning }}</span>
-      <span class="ok" title="OK Links">✅ {{ repo.linkStats.ok }}</span>
+      <div class="stat-item bad">
+        <span class="label">Bad</span>
+        <span class="value">
+          <template v-if="isLoading">
+            <div class="spinner"></div>
+          </template>
+          <template v-else>
+            {{ repo.linkStats.bad }}
+          </template>
+        </span>
+      </div>
+      <div class="stat-item warning">
+        <span class="label">Warning</span>
+        <span class="value">
+          <template v-if="isLoading">
+            <div class="spinner"></div>
+          </template>
+          <template v-else>
+            {{ repo.linkStats.warning }}
+          </template>
+        </span>
+      </div>
+      <div class="stat-item ok">
+        <span class="label">Ok</span>
+        <span class="value">
+          <template v-if="isLoading">
+            <div class="spinner"></div>
+          </template>
+          <template v-else>
+            {{ repo.linkStats.ok }}
+          </template>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -139,24 +181,79 @@ const formattedDate = computed(() => {
   font-size: 1em;
 }
 
-.link-stats span {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-weight: 500;
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  min-width: 80px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
 }
 
-.link-stats .bad {
-  background-color: var(--error-bg);
+.stat-item .label {
+  font-size: 0.9em;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.stat-item .value {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.stat-item.bad {
   color: var(--error-color);
 }
 
-.link-stats .warning {
-  background-color: var(--warning-bg);
+.stat-item.warning {
   color: var(--warning-color);
 }
 
-.link-stats .ok {
-  background-color: var(--success-bg);
+.stat-item.ok {
   color: var(--success-color);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.repo-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 1.1em;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.repo-link:hover {
+  color: var(--primary-color);
+  background-color: var(--button-hover-bg);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.value {
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 </style> 

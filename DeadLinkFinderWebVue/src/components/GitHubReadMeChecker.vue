@@ -53,16 +53,19 @@ const filteredRepos = computed(() => {
     const filter = repoFilter.value.toLowerCase()
     filtered = repos.value.filter(repo => repo.name.toLowerCase().startsWith(filter))
   }
-  const displayRepos = filtered.slice(0, 5)
+  
+  // Only show first 3 repos
+  const displayRepos = filtered.slice(0, 3)
+  
+  // Auto-select first repo if it's different from current selection
+  if (displayRepos.length > 0 && (!selectedRepo.value || !displayRepos.includes(selectedRepo.value))) {
+    selectedRepo.value = displayRepos[0]
+  }
   
   // Check links for newly displayed repos
   displayRepos.forEach(repo => {
     if (!checkedRepos.has(repo.name)) {
-      loadingRepos.add(repo.name)
-      checkRepoLinks(repo).finally(() => {
-        loadingRepos.delete(repo.name)
-      })
-      checkedRepos.add(repo.name)
+      checkRepoLinks(repo)
     }
   })
   
@@ -105,6 +108,11 @@ const searchRepos = async (username: string) => {
     // Auto-select first repo
     if (repos.value.length > 0) {
       selectedRepo.value = repos.value[0]
+      // Start checking links for the first repo immediately
+      loadingRepos.add(repos.value[0].name)
+      await checkRepoLinks(repos.value[0])
+      loadingRepos.delete(repos.value[0].name)
+      checkedRepos.add(repos.value[0].name)
     }
   } catch (err) {
     error.value = 'Error fetching repositories'
@@ -115,6 +123,9 @@ const searchRepos = async (username: string) => {
 }
 
 const checkRepoLinks = async (repo: RepoInfo) => {
+  if (loadingRepos.has(repo.name)) return // Prevent duplicate checks
+  
+  loadingRepos.add(repo.name)
   try {
     const response = await fetch(getApiUrl(`/Home/CheckRepo?projectBaseUrl=${encodeURIComponent(`https://github.com/${currentUsername.value}/${repo.name}`)}&branch=${repo.defaultBranch}`), {
       method: 'GET',
@@ -164,6 +175,9 @@ const checkRepoLinks = async (repo: RepoInfo) => {
       warning: 0,
       ok: 0
     }
+  } finally {
+    loadingRepos.delete(repo.name)
+    checkedRepos.add(repo.name)
   }
 }
 
@@ -173,6 +187,15 @@ const toggleFavorite = (repo: RepoInfo) => {
     .filter(r => r.isFavorite)
     .map(r => r.name)
   localStorage.setItem('favorites', JSON.stringify(favorites))
+}
+
+const clearResults = () => {
+  repos.value = []
+  selectedRepo.value = null
+  repoFilter.value = ''
+  checkedRepos.clear()
+  loadingRepos.clear()
+  currentUsername.value = ''
 }
 </script>
 
@@ -184,6 +207,7 @@ const toggleFavorite = (repo: RepoInfo) => {
       <SearchForm 
         :is-loading="isLoading"
         @search="searchRepos"
+        @clear="clearResults"
       />
 
       <div v-if="error" class="error-message">
@@ -224,44 +248,50 @@ const toggleFavorite = (repo: RepoInfo) => {
 <style>
 :root {
   /* Light theme variables */
-  --primary-color: #2c3e50;
-  --primary-color-dark: #1a252f;
-  --text-color: #2c3e50;
-  --text-secondary: #666;
-  --border-color: #ddd;
-  --card-bg: #fff;
-  --input-bg: #fff;
-  --button-bg: #f5f5f5;
-  --button-hover-bg: #e0e0e0;
-  --link-color: #2c3e50;
-  --error-color: #c62828;
-  --warning-color: #ef6c00;
-  --success-color: #2e7d32;
-  --error-bg: #ffebee;
-  --warning-bg: #fff3e0;
-  --success-bg: #e8f5e9;
-  --disabled-color: #95a5a6;
+  --primary-color: #2563eb;
+  --primary-color-dark: #1d4ed8;
+  --text-color: #1f2937;
+  --text-secondary: #4b5563;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --button-bg: #f3f4f6;
+  --button-hover-bg: #e5e7eb;
+  --link-color: #2563eb;
+  --error-color: #dc2626;
+  --warning-color: #d97706;
+  --success-color: #059669;
+  --error-bg: #fee2e2;
+  --warning-bg: #fef3c7;
+  --success-bg: #d1fae5;
+  --disabled-color: #9ca3af;
+  --selected-bg: #eff6ff;
+  --selected-border: #93c5fd;
+  --page-bg: #ffffff;
 }
 
 .dark-theme {
   /* Dark theme variables */
-  --primary-color: #3498db;
-  --primary-color-dark: #2980b9;
-  --text-color: #ecf0f1;
-  --text-secondary: #bdc3c7;
-  --border-color: #34495e;
-  --card-bg: #2c3e50;
-  --input-bg: #34495e;
-  --button-bg: #34495e;
-  --button-hover-bg: #2c3e50;
-  --link-color: #3498db;
-  --error-color: #e74c3c;
-  --warning-color: #f39c12;
-  --success-color: #2ecc71;
-  --error-bg: #2c1f1f;
-  --warning-bg: #2c2a1f;
-  --success-bg: #1f2c1f;
-  --disabled-color: #7f8c8d;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+  --text-color: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --card-bg: #1f2937;
+  --input-bg: #374151;
+  --button-bg: #374151;
+  --button-hover-bg: #4b5563;
+  --link-color: #60a5fa;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --success-color: #10b981;
+  --error-bg: #7f1d1d;
+  --warning-bg: #78350f;
+  --success-bg: #064e3b;
+  --disabled-color: #6b7280;
+  --selected-bg: #1e3a8a;
+  --selected-border: #3b82f6;
+  --page-bg: #111827;
 }
 
 .github-readme-checker {
@@ -269,8 +299,11 @@ const toggleFavorite = (repo: RepoInfo) => {
   left: 0;
   right: 0;
   width: 100vw;
+  min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
+  background-color: var(--page-bg);
+  overflow-x: hidden;
 }
 
 .input-section {
@@ -301,25 +334,34 @@ const toggleFavorite = (repo: RepoInfo) => {
 
 .repos-list {
   display: flex;
-  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 30px;
   width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
   justify-content: center;
 }
 
 .repo-card {
-  flex: 0 0 300px;
+  width: 300px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
   background-color: var(--card-bg);
   transition: all 0.2s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.repo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .repo-card.selected {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px var(--primary-color);
+  background-color: var(--selected-bg);
+  border-color: var(--selected-border);
+  box-shadow: 0 0 0 2px var(--selected-border);
 }
 
 .repo-card.loading {
@@ -345,5 +387,29 @@ const toggleFavorite = (repo: RepoInfo) => {
   margin: 0 auto;
   padding: 0 20px;
   box-sizing: border-box;
+}
+
+@media (max-width: 1600px) {
+  .repos-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1280px) {
+  .repos-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .repos-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .repos-list {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
