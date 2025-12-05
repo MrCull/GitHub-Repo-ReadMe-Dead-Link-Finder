@@ -99,6 +99,34 @@
         let allRepos = [];
         let checkedRepos = new Set();
         let currentUserOrOrg = '';
+        const LAST_SEARCH_KEY = 'dlf:lastSearch';
+
+        function saveLastSearch(value) {
+            try {
+                if (value) {
+                    localStorage.setItem(LAST_SEARCH_KEY, value);
+                }
+            } catch (e) {
+                console.warn('Unable to save last search', e);
+            }
+        }
+
+        function getLastSearch() {
+            try {
+                return localStorage.getItem(LAST_SEARCH_KEY);
+            } catch (e) {
+                console.warn('Unable to read last search', e);
+                return null;
+            }
+        }
+
+        function clearLastSearch() {
+            try {
+                localStorage.removeItem(LAST_SEARCH_KEY);
+            } catch (e) {
+                console.warn('Unable to clear last search', e);
+            }
+        }
 
         // Handle form submission
         $('#searchForm').on('submit', function(e) {
@@ -111,6 +139,7 @@
             }
 
             currentUserOrOrg = userOrOrg;
+            clearLastSearch();
             $('#searchSection').hide();
             $('#loadingSection').show();
             $('#errorMessage').hide();
@@ -138,6 +167,7 @@
 
                     allRepos = repos;
                     checkedRepos.clear();
+                    saveLastSearch(userOrOrg);
 
                     // Get the 5 most recent repos
                     const reposToCheck = repos.slice(0, 5);
@@ -175,6 +205,11 @@
                         <i class="fa fa-times"></i>
                     </button>
                     <div class="repo-card-header">
+                        <div class="repo-status" id="repo-status-${repoId}">
+                            <div class="status-checking" title="Checking" aria-label="Checking" role="status">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
                         <div class="repo-info">
                             <h3 class="repo-name">
                                 <a href="${repo.url}" target="_blank">${repo.name}</a>
@@ -184,11 +219,6 @@
                                 <span class="repo-meta-item"><i class="fa fa-eye"></i> ${repo.watchers || 0} watching</span>
                                 <span class="repo-meta-item"><i class="fa fa-code-fork"></i> ${repo.forks || 0} forks</span>
                                 ${repo.updatedAt ? `<span class="repo-meta-item"><i class="fa fa-clock-o"></i> ${formatRelativeTime(new Date(repo.updatedAt))}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="repo-status" id="repo-status-${repoId}">
-                            <div class="status-checking">
-                                <i class="fa fa-spinner fa-spin"></i> Checking...
                             </div>
                         </div>
                     </div>
@@ -220,7 +250,7 @@
                     updateRepoStatus(repoId, data, uri, repoName);
                 },
                 error: function() {
-                    $('#repo-status-' + repoId).html('<div class="status-error"><i class="fa fa-exclamation-triangle"></i> Error checking repo</div>');
+                    $('#repo-status-' + repoId).html('<div class="status-error" title="Error checking repo" aria-label="Error checking repo" role="status"><i class="fa fa-exclamation-triangle"></i></div>');
                 }
             });
         }
@@ -252,16 +282,14 @@
             });
 
             // Update status indicator
-            let statusHtml = '';
+            let statusHtml = '<div class="status-success" title="All links OK" aria-label="All links OK" role="status"><i class="fa fa-check-circle"></i></div>';
             let statusClass = 'status-success';
             if (bad > 0) {
-                statusHtml = '<div class="status-error"><i class="fa fa-times-circle"></i> Issues Found</div>';
+                statusHtml = '<div class="status-error" title="Issues found" aria-label="Issues found" role="status"><i class="fa fa-times-circle"></i></div>';
                 statusClass = 'status-error';
             } else if (warning > 0) {
-                statusHtml = '<div class="status-warning"><i class="fa fa-exclamation-triangle"></i> Warnings</div>';
+                statusHtml = '<div class="status-warning" title="Warnings found" aria-label="Warnings found" role="status"><i class="fa fa-exclamation-triangle"></i></div>';
                 statusClass = 'status-warning';
-            } else {
-                statusHtml = '<div class="status-success"><i class="fa fa-check-circle"></i> All Links OK</div>';
             }
             $('#repo-status-' + repoId).html(statusHtml);
             $('#repo-card-' + repoId).addClass(statusClass);
@@ -541,6 +569,7 @@
             $('#reposListContainer').empty();
             allRepos = [];
             checkedRepos.clear();
+            clearLastSearch();
         }
 
         // Handle existing model data (backward compatibility)
@@ -571,5 +600,13 @@
             });
             </text>
         }
+
+        $(document).ready(function() {
+            const lastSearch = getLastSearch();
+            if (lastSearch) {
+                $('#userOrOrgInput').val(lastSearch);
+                $('#searchForm').trigger('submit');
+            }
+        });
     </script>
 }
