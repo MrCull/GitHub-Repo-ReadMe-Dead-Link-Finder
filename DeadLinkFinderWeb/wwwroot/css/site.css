@@ -332,6 +332,14 @@ main {
     flex-shrink: 0;
 }
 
+.sticky-select-btn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 /* Repo Cards */
 .repos-container {
     display: grid;
@@ -425,9 +433,22 @@ main {
 
 .repo-meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.repo-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.repo-meta-item i {
+    font-size: 0.875rem;
+    opacity: 0.7;
 }
 
 .repo-stars {
@@ -493,38 +514,40 @@ main {
 
 .link-filters {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin-bottom: 1.25rem;
-    padding: 0.875rem 1rem;
-    background: linear-gradient(to bottom, #f8f9fa, #ffffff);
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
     flex-wrap: wrap;
 }
 
-.link-filter-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    font-size: 0.8125rem;
-    user-select: none;
-    padding: 0.375rem 0.625rem;
-    border-radius: 6px;
-    transition: background 0.2s ease;
-    font-weight: 500;
+.link-filter-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
     color: var(--text-secondary);
-}
-
-.link-filter-item:hover {
-    background: rgba(102, 126, 234, 0.08);
-}
-
-.link-filter-item input[type="checkbox"] {
+    font-size: 0.8125rem;
+    font-weight: 600;
     cursor: pointer;
-    width: 16px;
-    height: 16px;
-    accent-color: #667eea;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.link-filter-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.link-filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.link-filter-btn.active:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    box-shadow: 0 3px 6px rgba(102, 126, 234, 0.3);
 }
 
 .badge {
@@ -554,6 +577,21 @@ main {
     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
     color: #c62828;
     border: 1px solid rgba(198, 40, 40, 0.1);
+}
+
+.filter-badge {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.filter-badge.active {
+    opacity: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.filter-badge:hover {
+    transform: translateY(-1px);
 }
 
 /* Link Details */
@@ -1031,7 +1069,7 @@ main {
         width: 100%;
         top: auto;
         bottom: 0;
-        height: 80vh;
+        height: 90vh;
         border-radius: 16px 16px 0 0;
     }
 

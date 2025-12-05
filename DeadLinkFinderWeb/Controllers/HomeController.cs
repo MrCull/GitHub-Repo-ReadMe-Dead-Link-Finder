@@ -113,6 +113,8 @@ public class HomeController : Controller
                 url = r.Uri.ToString(),
                 branch = r.Branch,
                 stars = r.Stars,
+                watchers = r.Watchers ?? 0,
+                forks = r.Forks ?? 0,
                 updatedAt = r.UpdatedAt?.ToString("O") ?? null
             }).ToList();
 

@@ -45,7 +45,7 @@
                 <p class="results-description">Checking README links for your repositories. Use the panel to select which repos to check.</p>
             </div>
             <div class="results-header-actions">
-                <button class="btn btn-primary btn-sm" id="togglePanelBtn" onclick="toggleSidePanel()">
+                <button class="btn btn-primary btn-sm sticky-select-btn" id="togglePanelBtn" onclick="toggleSidePanel()">
                     <i class="fa fa-list"></i> Select Repos
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="resetSearch()">New Search</button>
@@ -177,10 +177,13 @@
                     <div class="repo-card-header">
                         <div class="repo-info">
                             <h3 class="repo-name">
-                                <a href="${repo.url}" target="_blank">${repo.fullName}</a>
+                                <a href="${repo.url}" target="_blank">${repo.name}</a>
                             </h3>
                             <div class="repo-meta">
-                                <span class="repo-stars"><i class="fa fa-star"></i> ${repo.stars}</span>
+                                <span class="repo-meta-item"><i class="fa fa-star"></i> ${repo.stars} stars</span>
+                                <span class="repo-meta-item"><i class="fa fa-eye"></i> ${repo.watchers || 0} watching</span>
+                                <span class="repo-meta-item"><i class="fa fa-code-fork"></i> ${repo.forks || 0} forks</span>
+                                ${repo.updatedAt ? `<span class="repo-meta-item"><i class="fa fa-clock-o"></i> ${formatRelativeTime(new Date(repo.updatedAt))}</span>` : ''}
                             </div>
                         </div>
                         <div class="repo-status" id="repo-status-${repoId}">
@@ -191,23 +194,9 @@
                     </div>
                     <div class="repo-card-body" id="repo-body-${repoId}">
                         <div class="link-counts" id="link-counts-${repoId}" style="display: none;">
-                            <span class="badge badge-ok" id="badge-ok-${repoId}">0 OK</span>
-                            <span class="badge badge-warning" id="badge-warning-${repoId}">0 Warning</span>
-                            <span class="badge badge-error" id="badge-error-${repoId}">0 Bad</span>
-                        </div>
-                        <div class="link-filters" id="link-filters-${repoId}" style="display: none;">
-                            <label class="link-filter-item">
-                                <input type="checkbox" class="link-filter-checkbox" data-filter="ok" data-repo-id="${repoId}" onchange="filterLinks('${repoId}')">
-                                <span>Show OK</span>
-                            </label>
-                            <label class="link-filter-item">
-                                <input type="checkbox" class="link-filter-checkbox" data-filter="warning" data-repo-id="${repoId}" checked onchange="filterLinks('${repoId}')">
-                                <span>Show Warning</span>
-                            </label>
-                            <label class="link-filter-item">
-                                <input type="checkbox" class="link-filter-checkbox" data-filter="bad" data-repo-id="${repoId}" checked onchange="filterLinks('${repoId}')">
-                                <span>Show Bad</span>
-                            </label>
+                            <span class="badge badge-ok filter-badge" data-filter="ok" onclick="toggleBadgeFilter('${repoId}', 'ok')" id="badge-ok-${repoId}">0 OK</span>
+                            <span class="badge badge-warning filter-badge active" data-filter="warning" onclick="toggleBadgeFilter('${repoId}', 'warning')" id="badge-warning-${repoId}">0 Warning</span>
+                            <span class="badge badge-error filter-badge active" data-filter="bad" onclick="toggleBadgeFilter('${repoId}', 'bad')" id="badge-error-${repoId}">0 Bad</span>
                         </div>
                         <div class="link-details" id="link-details-${repoId}" style="display: none;">
                             <!-- Link details will be added here -->
@@ -321,10 +310,7 @@
 
             if (detailsHtml) {
                 $('#link-details-' + repoId).html(detailsHtml).show();
-                $('#link-filters-' + repoId).show();
-                // Default: hide OK links
-                $('#link-filters-' + repoId + ' input[data-filter="ok"]').prop('checked', false);
-                filterLinks(repoId);
+                setBadgeDefaults(repoId);
             }
         }
 
@@ -338,7 +324,7 @@
                 const updatedDate = repo.updatedAt ? new Date(repo.updatedAt) : null;
                 const updatedText = updatedDate ? formatRelativeTime(updatedDate) : '';
                 const checkboxHtml = `
-                    <div class="repo-list-item ${isChecked ? 'checked' : ''}" data-repo-url="${repo.url}" data-repo-name="${repo.fullName.toLowerCase()}" data-updated="${repo.updatedAt || ''}">
+                    <div class="repo-list-item ${isChecked ? 'checked' : ''}" data-repo-url="${repo.url}" data-repo-name="${repo.name.toLowerCase()}" data-updated="${repo.updatedAt || ''}">
                         <label class="repo-checkbox-label">
                             <input type="checkbox" 
                                    class="repo-checkbox" 
@@ -347,11 +333,13 @@
                                    data-name="${repo.name}"
                                    data-fullname="${repo.fullName}"
                                    data-stars="${repo.stars}"
+                                   data-watchers="${repo.watchers || 0}"
+                                   data-forks="${repo.forks || 0}"
                                    data-updated="${repo.updatedAt || ''}"
                                    ${isChecked ? 'checked' : ''}
                                    onchange="handleRepoCheckboxChange(this)" />
                             <div class="repo-list-content">
-                                <span class="repo-list-name">${repo.fullName}</span>
+                                <span class="repo-list-name">${repo.name}</span>
                                 <div class="repo-list-meta">
                                     <span class="repo-list-stars"><i class="fa fa-star"></i> ${repo.stars}</span>
                                     ${updatedText ? `<span class="repo-list-updated">${updatedText}</span>` : ''}
@@ -418,10 +406,23 @@
             checkedRepos.delete(repoUrl);
         }
 
-        function filterLinks(repoId) {
-            const showOk = $('#link-filters-' + repoId + ' input[data-filter="ok"]').is(':checked');
-            const showWarning = $('#link-filters-' + repoId + ' input[data-filter="warning"]').is(':checked');
-            const showBad = $('#link-filters-' + repoId + ' input[data-filter="bad"]').is(':checked');
+        function toggleBadgeFilter(repoId, filterType) {
+            const $badge = $('#badge-' + filterType + '-' + repoId);
+            $badge.toggleClass('active');
+            applyBadgeFilters(repoId);
+        }
+
+        function setBadgeDefaults(repoId) {
+            $('#badge-ok-' + repoId).removeClass('active');
+            $('#badge-warning-' + repoId).addClass('active');
+            $('#badge-bad-' + repoId).addClass('active');
+            applyBadgeFilters(repoId);
+        }
+
+        function applyBadgeFilters(repoId) {
+            const showOk = $('#badge-ok-' + repoId).hasClass('active');
+            const showWarning = $('#badge-warning-' + repoId).hasClass('active');
+            const showBad = $('#badge-bad-' + repoId).hasClass('active');
 
             $('#link-details-' + repoId + ' .link-item').each(function() {
                 const linkType = $(this).data('link-type');
