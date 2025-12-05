@@ -1,4 +1,4 @@
-﻿using DeadLinkFinderWeb.Models;
+using DeadLinkFinderWeb.Models;
 using GitHubRepoFinder;
 using LinksChecker;
 using Microsoft.AspNetCore.Mvc;
@@ -55,41 +55,17 @@ public class HomeController : Controller
         }
         else
         {
-            if (repoChecker.SearchSort != null)
-            {
-                _searchRepositoriesRequest.SortField = (RepoSearchSort)repoChecker.SearchSort;
-            }
-
-            if (repoChecker.SortAscDsc == null)
-            {
-                _searchRepositoriesRequest.Order = SortDirection.Descending;
-            }
-            else
-            {
-                _searchRepositoriesRequest.Order = (SortDirection)repoChecker.SortAscDsc;
-            }
-
-            if (repoChecker.MinStar.HasValue && repoChecker.MinStar >= 0)
-            {
-                _searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(repoChecker.MinStar.Value);
-            }
-            else
-            {
-                _searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
-            }
-
-            if (repoChecker.UpdatedAfter.HasValue && repoChecker.UpdatedAfter < DateTime.UtcNow)
-            {
-                _searchRepositoriesRequest.Updated = DateRange.Between(repoChecker.UpdatedAfter.Value.ToUniversalTime(), DateTimeOffset.UtcNow);
-            }
-
+            // Simplified workflow: auto-set to get 5 most recent repos
+            _searchRepositoriesRequest.SortField = RepoSearchSort.Updated;
+            _searchRepositoriesRequest.Order = SortDirection.Descending;
+            _searchRepositoriesRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
             _searchRepositoriesRequest.User = repoChecker.User;
 
             int maxRepos = repoChecker.NumberOfReposToSearchFor ?? 5;
             // prevent to many repos to search
             if (maxRepos > 25)
             {
-                maxRepos = 2;
+                maxRepos = 25;
             }
 
             if (repoChecker.IncludeForks)
@@ -105,9 +81,53 @@ public class HomeController : Controller
         return View("Index", repoChecker);
     }
 
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    [HttpGet]
+    public JsonResult GetUserRepos(string userOrOrg, bool includeForks = false, int maxRepos = 100)
+    {
+        try
+        {
+            var searchRequest = new SearchRepositoriesRequest();
+            searchRequest.User = userOrOrg;
+            searchRequest.SortField = RepoSearchSort.Updated;
+            searchRequest.Order = SortDirection.Descending;
+            searchRequest.Stars = Octokit.Range.GreaterThanOrEquals(0);
+            
+            if (includeForks)
+            {
+                searchRequest.Fork = ForkQualifier.IncludeForks;
+            }
+
+            // Limit to reasonable number
+            if (maxRepos > 100)
+            {
+                maxRepos = 100;
+            }
+
+            IEnumerable<RepoSearchResult> repoSearchResults = _gitHubActiveReposFinder.GetRepoSearchResults(maxRepos, searchRequest);
+
+            var repos = repoSearchResults.Select(r => new
+            {
+                name = r.Uri.Segments.Last().TrimEnd('/'),
+                fullName = r.Uri.ToString().Replace("https://github.com/", ""),
+                url = r.Uri.ToString(),
+                branch = r.Branch,
+                stars = r.Stars,
+                updatedAt = r.UpdatedAt?.ToString("O") ?? null
+            }).ToList();
+
+            return Json(repos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching repos for {UserOrOrg}", userOrOrg);
+            return Json(new { error = "Failed to fetch repositories. Please check the username/organization name." });
+        }
+    }
+
 
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-    public async Task<JsonResult> CheckRepoAsync(string projectBaseUrl, string branch)
+    public async Task<JsonResult> CheckRepo(string projectBaseUrl, string branch)
     {
         Dictionary<string, HttpResponseMessage> linkWithResponse = await _linkChecker.CheckLinks(projectBaseUrl, branch);
 

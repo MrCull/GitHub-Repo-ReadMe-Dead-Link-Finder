@@ -38,7 +38,7 @@ public class GitHubActiveReposFinder : IRepoFinder
 
             SearchRepositoryResult result = _githubClient.Search.SearchRepo(searchRepositoriesRequest).Result;
 
-            repoSearchResult.AddRange(result.Items.Select(repo => new RepoSearchResult(new Uri(repo.HtmlUrl), repo.DefaultBranch, repo.StargazersCount)));
+            repoSearchResult.AddRange(result.Items.Select(repo => new RepoSearchResult(new Uri(repo.HtmlUrl), repo.DefaultBranch, repo.StargazersCount, repo.UpdatedAt)));
 
         }
 

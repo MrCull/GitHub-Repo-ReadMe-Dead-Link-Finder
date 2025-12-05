@@ -1,210 +1,568 @@
-﻿@using System.Text.RegularExpressions
 @model DeadLinkFinderWeb.Models.RepoCheckerModel
 
 @{
-    ViewData["Title"] = "Search Repos' readme...";
+    ViewData["Title"] = "GitHub README Link Checker";
 }
 
-<h4>Repo Search</h4>
-<hr />
-<div class="row">
-    <div class="col-md-3">
-        <form asp-controller="Home" asp-action="Search" method="get">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="SingleRepoUri" class="control-label"></label>
-                <input id="serchFormUri" asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
-                <span asp-validation-for="SingleRepoUri" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="User" class="control-label"></label>
-                <input asp-for="User" class="form-control" title="e.g. google" />
-                <span asp-validation-for="User" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="NumberOfReposToSearchFor" class="control-label"></label>
-                <input id="serchFormNumberOfReposToSearchFor" asp-for="NumberOfReposToSearchFor" class="form-control" placeholder="5" title="e.g. 10" />
-                <span asp-validation-for="NumberOfReposToSearchFor" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="MinStar" class="control-label"></label>
-                <input asp-for="MinStar" class="form-control" placeholder="0" />
-                <span asp-validation-for="MinStar" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAfter" class="control-label"></label>
-                <input asp-for="UpdatedAfter" class="form-control" />
-                <span asp-validation-for="UpdatedAfter" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SearchSort" class="control-label"></label>
-                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.RepoSearchSort)).OrderByDescending(em => em.Value)" class="form-control"></select>
-                <span asp-validation-for="SearchSort" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SortAscDsc" class="control-label"></label>
-                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
-                <span asp-validation-for="SortAscDsc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input id="serchFormButton" type="submit" value="Search for Repo(s)" class="btn btn-primary" />
-            </div>
-            <div class="form-group">
-                <a asp-action="Index">Reset Search</a>
-                <br />
-                <br />
-                Found an <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues">Issue</a> with this tool, or would like to <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions">Discuss</a> something?
-            </div>
-        </form>
+<div class="main-container">
+    <!-- Search Section -->
+    <div class="search-section" id="searchSection">
+        <div class="search-container">
+            <h1 class="main-title">GitHub README Link Checker</h1>
+            <p class="subtitle">Check for broken links in your GitHub repository README files</p>
+            
+            <form id="searchForm" class="search-form">
+                <div class="input-group">
+                    <input type="text" 
+                           id="userOrOrgInput" 
+                           class="form-control modern-input" 
+                           placeholder="GitHub username or org" 
+                           required />
+                    <button type="submit" class="btn btn-primary modern-btn" id="searchBtn">
+                        <span class="btn-text">Check Repos</span>
+                        <span class="btn-spinner" style="display: none;">
+                            <i class="fa fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
+            </form>
+        </div>
     </div>
 
+    <!-- Loading State -->
+    <div class="loading-section" id="loadingSection" style="display: none;">
+        <div class="loading-content">
+            <i class="fa fa-spinner fa-spin fa-3x"></i>
+            <p>Fetching repositories...</p>
+        </div>
+    </div>
 
-    @if (Model != null)
-{
-    <div class="col-sm-9">
-            <div class="container">
-                <div id="accordion">
-                    @foreach (var uri in Model.RepoUrlsAndDefaultBranch.Select(u => u.RepoUri))
-                    {
-                        <div class="card">
-                            <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
-                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class='fa fa-plus'></i></a>
-                                <b id="card_img_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"></b>
-                                <a data-toggle="collapse" href="@uri">@uri</a>
-                            </div>
-                            <div id='collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")' class="collapse show" data-parent="#accordion">
-                                <div class="card-body" id="card_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
-                                    <img id="checking_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")" src='../images/checking-icon.gif' alt='icon' width='25' height='25' />
-                                </div>
-                            </div>
-                        </div>
-
-                    }
-
-                    <a asp-action="Index">Reset Search</a>
-                </div>
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="results-header">
+            <div class="results-header-text">
+                <p class="results-description">Checking README links for your repositories. Use the panel to select which repos to check.</p>
+            </div>
+            <div class="results-header-actions">
+                <button class="btn btn-primary btn-sm" id="togglePanelBtn" onclick="toggleSidePanel()">
+                    <i class="fa fa-list"></i> Select Repos
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="resetSearch()">New Search</button>
             </div>
         </div>
-}
+        
+        <div class="repos-container" id="reposContainer">
+            <!-- Repos will be dynamically added here -->
+        </div>
+    </div>
 
+    <!-- Side Panel Overlay -->
+    <div class="side-panel-overlay" id="sidePanelOverlay" onclick="toggleSidePanel()"></div>
+
+    <!-- Side Panel -->
+    <div class="side-panel" id="sidePanel">
+        <div class="side-panel-header">
+            <h3>Select Repositories</h3>
+            <button class="side-panel-close" onclick="toggleSidePanel()">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="side-panel-controls">
+            <div class="sort-control">
+                <label for="sortSelect">Sort by:</label>
+                <select id="sortSelect" class="form-control" onchange="sortRepos()">
+                    <option value="updated">Last Updated</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+            <div class="search-control">
+                <input type="text" 
+                       id="repoSearchInput" 
+                       class="form-control" 
+                       placeholder="Search repositories..." 
+                       onkeyup="filterRepos()" />
+            </div>
+        </div>
+        <div class="side-panel-content">
+            <div class="repos-list-container" id="reposListContainer">
+                <!-- Available repos will be listed here -->
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
-            function CheckRepo(uri, branch) {
+        let allRepos = [];
+        let checkedRepos = new Set();
+        let currentUserOrOrg = '';
+
+        // Handle form submission
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            const userOrOrg = $('#userOrOrgInput').val().trim();
+            
+            if (!userOrOrg) {
+                showError('Please enter a GitHub username or organization');
+                return;
+            }
+
+            currentUserOrOrg = userOrOrg;
+            $('#searchSection').hide();
+            $('#loadingSection').show();
+            $('#errorMessage').hide();
+            $('#searchBtn .btn-text').hide();
+            $('#searchBtn .btn-spinner').show();
+            $('#searchBtn').prop('disabled', true);
+
+            // Fetch repos and start checking
+            fetchAndCheckRepos(userOrOrg);
+        });
+
+        function fetchAndCheckRepos(userOrOrg) {
+            // First, get all available repos
             $.ajax({
                 type: 'GET',
-                url: '@Url.Action("CheckRepo")',
-                data: { 'projectBaseUrl': uri, 'branch': branch },
-                dataType: "json",
-                cache: false,
-                success: function (data) {
-                    var ok = 0;
-                    var bad = 0;
-                    var warning = 0;
-                    var body = "";
-                    $.each(data, function (key) {
+                url: '@Url.Action("GetUserRepos", "Home")',
+                data: { userOrOrg: userOrOrg, maxRepos: 100 },
+                dataType: 'json',
+                success: function(repos) {
+                    if (repos.error) {
+                        showError(repos.error);
+                        resetToSearch();
+                        return;
+                    }
 
+                    allRepos = repos;
+                    checkedRepos.clear();
 
-                        body += " <tr class='table-slim'>";
-                        body += "<td nowrap ><img src='../images/";
+                    // Get the 5 most recent repos
+                    const reposToCheck = repos.slice(0, 5);
+                    
+                    $('#loadingSection').hide();
+                    $('#resultsSection').show();
+                    $('#reposContainer').empty();
 
-                        if (data[key].httpStatusCode == 200) {
-                            body += "ok-icon.png";
-                            ok = ok + 1;
-                        }
-                        else if (data[key].httpStatusCode == 404) {
-                            bad = bad + 1;
-                            body += "error-icon.png";
-                        }
-                        else {
-                            body += "warning-icon.jpg";
-                            warning = warning + 1;
-                        }
+                    // Display all repos in side panel
+                    displayAvailableRepos(repos);
 
-                        body += "' alt='icon' width='25' height='25'/></td>";
-
-                        body +=  "<td nowrap> " + data[key].httpStatusCodeText + "(" + data[key].httpStatusCode + ") </td>" +
-                            "<td ><a href='" + data[key].uriText + "'>" + data[key].uriText + " </a> </td>" +
-                            "</tr>";
-
+                    // Auto-check and start checking first 5 repos
+                    reposToCheck.forEach(function(repo) {
+                        addRepoCard(repo);
+                        checkRepo(repo.url, repo.branch, repo.name);
+                        checkedRepos.add(repo.url);
+                        // Update checkbox in side panel
+                        $(`.repo-checkbox[value="${repo.url}"]`).prop('checked', true);
                     });
 
-
-                    thImage = 'ok-icon.png';
-                    if (bad > 0) {
-                        thImage = 'error-icon.png';
-                    }
-                    else if (warning > 0) {
-                        thImage = 'warning-icon.jpg';
-                    }
-
-                    $("#checking_" + ConvertUriToValidId(uri) ).remove();
-
-
-                    $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_img_' + ConvertUriToValidId(uri));
-                    $(" <i>Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</i>").appendTo('#card_head_' + ConvertUriToValidId(uri));
-
-
-                    $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
-
-
-                    if (@(Model?.RepoUrlsAndDefaultBranch.Count ?? 0) != 1) {
-                        $('#collapse_' + ConvertUriToValidId(uri)).collapse();
-                    }
-
+                    resetToSearch();
                 },
-                error: function () {
-                    document.getElementById('lb' + ConvertUriToValidId(uri)).innerHTML = 'Error checking  Repo: ';
+                error: function(xhr) {
+                    showError('Failed to fetch repositories. Please check the username/organization name.');
+                    resetToSearch();
                 }
             });
         }
 
-
-
-       function ConvertUriToValidId(uri) {
-                return uri.replace(/[^A-Za-z0-9]/gi, '');
+        function addRepoCard(repo) {
+            const repoId = convertUriToValidId(repo.url);
+            const cardHtml = `
+                <div class="repo-card" id="repo-card-${repoId}" data-repo-url="${repo.url}">
+                    <button class="repo-card-close" onclick="removeRepoCard('${repo.url}')" title="Remove">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <div class="repo-card-header">
+                        <div class="repo-info">
+                            <h3 class="repo-name">
+                                <a href="${repo.url}" target="_blank">${repo.fullName}</a>
+                            </h3>
+                            <div class="repo-meta">
+                                <span class="repo-stars"><i class="fa fa-star"></i> ${repo.stars}</span>
+                            </div>
+                        </div>
+                        <div class="repo-status" id="repo-status-${repoId}">
+                            <div class="status-checking">
+                                <i class="fa fa-spinner fa-spin"></i> Checking...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="repo-card-body" id="repo-body-${repoId}">
+                        <div class="link-counts" id="link-counts-${repoId}" style="display: none;">
+                            <span class="badge badge-ok" id="badge-ok-${repoId}">0 OK</span>
+                            <span class="badge badge-warning" id="badge-warning-${repoId}">0 Warning</span>
+                            <span class="badge badge-error" id="badge-error-${repoId}">0 Bad</span>
+                        </div>
+                        <div class="link-filters" id="link-filters-${repoId}" style="display: none;">
+                            <label class="link-filter-item">
+                                <input type="checkbox" class="link-filter-checkbox" data-filter="ok" data-repo-id="${repoId}" onchange="filterLinks('${repoId}')">
+                                <span>Show OK</span>
+                            </label>
+                            <label class="link-filter-item">
+                                <input type="checkbox" class="link-filter-checkbox" data-filter="warning" data-repo-id="${repoId}" checked onchange="filterLinks('${repoId}')">
+                                <span>Show Warning</span>
+                            </label>
+                            <label class="link-filter-item">
+                                <input type="checkbox" class="link-filter-checkbox" data-filter="bad" data-repo-id="${repoId}" checked onchange="filterLinks('${repoId}')">
+                                <span>Show Bad</span>
+                            </label>
+                        </div>
+                        <div class="link-details" id="link-details-${repoId}" style="display: none;">
+                            <!-- Link details will be added here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#reposContainer').append(cardHtml);
         }
 
+        function checkRepo(uri, branch, repoName) {
+            const repoId = convertUriToValidId(uri);
+            
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CheckRepo", "Home")',
+                data: { projectBaseUrl: uri, branch: branch },
+                dataType: 'json',
+                cache: false,
+                success: function(data) {
+                    updateRepoStatus(repoId, data, uri, repoName);
+                },
+                error: function() {
+                    $('#repo-status-' + repoId).html('<div class="status-error"><i class="fa fa-exclamation-triangle"></i> Error checking repo</div>');
+                }
+            });
+        }
 
+        function updateRepoStatus(repoId, data, uri, repoName) {
+            let ok = 0, bad = 0, warning = 0;
+            const badLinks = [];
+            const warningLinks = [];
+            const okLinks = [];
 
+            $.each(data, function(key) {
+                const statusCode = data[key].httpStatusCode;
+                const link = {
+                    uri: data[key].uriText,
+                    statusCode: statusCode,
+                    statusText: data[key].httpStatusCodeText
+                };
 
-            $(document).ready(function(){
-        // Add minus icon for collapse element which is open by default
-        $(".collapse.show").each(function(){
-        	$(this).prev(".card-header").find(".fa").addClass("fa-minus").removeClass("fa-plus");
-        });
+                if (statusCode == 200) {
+                    ok++;
+                    okLinks.push(link);
+                } else if (statusCode == 404) {
+                    bad++;
+                    badLinks.push(link);
+                } else {
+                    warning++;
+                    warningLinks.push(link);
+                }
+            });
 
-        // Toggle plus minus icon on show hide of collapse element
-        $(".collapse").on('show.bs.collapse', function(){
-        	$(this).prev(".card-header").find(".fa").removeClass("fa-plus").addClass("fa-minus");
-        }).on('hide.bs.collapse', function(){
-        	$(this).prev(".card-header").find(".fa").removeClass("fa-minus").addClass("fa-plus");
-        });
-    });
+            // Update status indicator
+            let statusHtml = '';
+            let statusClass = 'status-success';
+            if (bad > 0) {
+                statusHtml = '<div class="status-error"><i class="fa fa-times-circle"></i> Issues Found</div>';
+                statusClass = 'status-error';
+            } else if (warning > 0) {
+                statusHtml = '<div class="status-warning"><i class="fa fa-exclamation-triangle"></i> Warnings</div>';
+                statusClass = 'status-warning';
+            } else {
+                statusHtml = '<div class="status-success"><i class="fa fa-check-circle"></i> All Links OK</div>';
+            }
+            $('#repo-status-' + repoId).html(statusHtml);
+            $('#repo-card-' + repoId).addClass(statusClass);
 
+            // Update counts
+            $('#badge-ok-' + repoId).text(ok + ' OK');
+            $('#badge-warning-' + repoId).text(warning + ' Warning');
+            $('#badge-error-' + repoId).text(bad + ' Bad');
+            $('#link-counts-' + repoId).show();
 
+            // Add link details
+            let detailsHtml = '';
+            
+            if (badLinks.length > 0) {
+                detailsHtml += '<div class="link-group"><h4 class="link-group-title error-title"><i class="fa fa-times-circle"></i> Bad Links (' + bad + ')</h4><div class="link-list" data-link-type="bad">';
+                badLinks.forEach(function(link) {
+                    detailsHtml += `<div class="link-item error-link" data-link-type="bad">
+                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
+                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
+                    </div>`;
+                });
+                detailsHtml += '</div></div>';
+            }
+
+            if (warningLinks.length > 0) {
+                detailsHtml += '<div class="link-group"><h4 class="link-group-title warning-title"><i class="fa fa-exclamation-triangle"></i> Warning Links (' + warning + ')</h4><div class="link-list" data-link-type="warning">';
+                warningLinks.forEach(function(link) {
+                    detailsHtml += `<div class="link-item warning-link" data-link-type="warning">
+                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
+                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
+                    </div>`;
+                });
+                detailsHtml += '</div></div>';
+            }
+
+            if (okLinks.length > 0) {
+                detailsHtml += '<div class="link-group collapsible"><h4 class="link-group-title ok-title" onclick="toggleLinkGroup(this)"><i class="fa fa-check-circle"></i> OK Links (' + ok + ') <i class="fa fa-chevron-down"></i></h4><div class="link-list" data-link-type="ok" style="display: none;">';
+                okLinks.forEach(function(link) {
+                    detailsHtml += `<div class="link-item ok-link" data-link-type="ok">
+                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
+                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
+                    </div>`;
+                });
+                detailsHtml += '</div></div>';
+            }
+
+            if (detailsHtml) {
+                $('#link-details-' + repoId).html(detailsHtml).show();
+                $('#link-filters-' + repoId).show();
+                // Default: hide OK links
+                $('#link-filters-' + repoId + ' input[data-filter="ok"]').prop('checked', false);
+                filterLinks(repoId);
+            }
+        }
+
+        function displayAvailableRepos(repos) {
+            const container = $('#reposListContainer');
+            container.empty();
+            
+            repos.forEach(function(repo) {
+                const repoId = convertUriToValidId(repo.url);
+                const isChecked = checkedRepos.has(repo.url);
+                const updatedDate = repo.updatedAt ? new Date(repo.updatedAt) : null;
+                const updatedText = updatedDate ? formatRelativeTime(updatedDate) : '';
+                const checkboxHtml = `
+                    <div class="repo-list-item ${isChecked ? 'checked' : ''}" data-repo-url="${repo.url}" data-repo-name="${repo.fullName.toLowerCase()}" data-updated="${repo.updatedAt || ''}">
+                        <label class="repo-checkbox-label">
+                            <input type="checkbox" 
+                                   class="repo-checkbox" 
+                                   value="${repo.url}" 
+                                   data-branch="${repo.branch}"
+                                   data-name="${repo.name}"
+                                   data-fullname="${repo.fullName}"
+                                   data-stars="${repo.stars}"
+                                   data-updated="${repo.updatedAt || ''}"
+                                   ${isChecked ? 'checked' : ''}
+                                   onchange="handleRepoCheckboxChange(this)" />
+                            <div class="repo-list-content">
+                                <span class="repo-list-name">${repo.fullName}</span>
+                                <div class="repo-list-meta">
+                                    <span class="repo-list-stars"><i class="fa fa-star"></i> ${repo.stars}</span>
+                                    ${updatedText ? `<span class="repo-list-updated">${updatedText}</span>` : ''}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                `;
+                container.append(checkboxHtml);
+            });
+            
+            // Apply current sort
+            sortRepos();
+        }
+
+        function toggleSidePanel() {
+            const panel = $('#sidePanel');
+            const overlay = $('#sidePanelOverlay');
+            if (panel.hasClass('open')) {
+                panel.removeClass('open');
+                overlay.removeClass('open');
+            } else {
+                panel.addClass('open');
+                overlay.addClass('open');
+            }
+        }
+
+        function handleRepoCheckboxChange(checkbox) {
+            const $checkbox = $(checkbox);
+            const repoUrl = $checkbox.val();
+            const repo = {
+                url: repoUrl,
+                branch: $checkbox.data('branch'),
+                name: $checkbox.data('name'),
+                fullName: $checkbox.data('fullname'),
+                stars: $checkbox.data('stars')
+            };
+
+            if ($checkbox.is(':checked')) {
+                // Add repo card and start checking
+                if (!checkedRepos.has(repoUrl)) {
+                    addRepoCard(repo);
+                    checkRepo(repo.url, repo.branch, repo.name);
+                    checkedRepos.add(repoUrl);
+                }
+            } else {
+                // Remove repo card
+                removeRepoCard(repoUrl);
+            }
+        }
+
+        function removeRepoCard(repoUrl) {
+            const repoId = convertUriToValidId(repoUrl);
+            const $card = $('#repo-card-' + repoId);
+            
+            if ($card.length) {
+                $card.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+            
+            // Uncheck in side panel
+            $(`.repo-checkbox[value="${repoUrl}"]`).prop('checked', false);
+            checkedRepos.delete(repoUrl);
+        }
+
+        function filterLinks(repoId) {
+            const showOk = $('#link-filters-' + repoId + ' input[data-filter="ok"]').is(':checked');
+            const showWarning = $('#link-filters-' + repoId + ' input[data-filter="warning"]').is(':checked');
+            const showBad = $('#link-filters-' + repoId + ' input[data-filter="bad"]').is(':checked');
+
+            $('#link-details-' + repoId + ' .link-item').each(function() {
+                const linkType = $(this).data('link-type');
+                if ((linkType === 'ok' && showOk) || 
+                    (linkType === 'warning' && showWarning) || 
+                    (linkType === 'bad' && showBad)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // Hide empty link groups
+            $('#link-details-' + repoId + ' .link-list').each(function() {
+                const $list = $(this);
+                const visibleItems = $list.find('.link-item:visible').length;
+                if (visibleItems === 0) {
+                    $list.closest('.link-group').hide();
+                } else {
+                    $list.closest('.link-group').show();
+                }
+            });
+        }
+
+        function sortRepos() {
+            const sortBy = $('#sortSelect').val();
+            const container = $('#reposListContainer');
+            const items = container.find('.repo-list-item').toArray();
+
+            items.sort(function(a, b) {
+                if (sortBy === 'name') {
+                    const nameA = $(a).data('repo-name') || '';
+                    const nameB = $(b).data('repo-name') || '';
+                    return nameA.localeCompare(nameB);
+                } else {
+                    // Sort by updated date (most recent first)
+                    const dateA = $(a).data('updated') || '';
+                    const dateB = $(b).data('updated') || '';
+                    if (!dateA && !dateB) return 0;
+                    if (!dateA) return 1;
+                    if (!dateB) return -1;
+                    return new Date(dateB) - new Date(dateA);
+                }
+            });
+
+            container.empty();
+            items.forEach(function(item) {
+                container.append(item);
+            });
+        }
+
+        function formatRelativeTime(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            const diffMonths = Math.floor(diffDays / 30);
+            const diffYears = Math.floor(diffDays / 365);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return diffMins + ' min ago';
+            if (diffHours < 24) return diffHours + ' hour' + (diffHours > 1 ? 's' : '') + ' ago';
+            if (diffDays < 30) return diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+            if (diffMonths < 12) return diffMonths + ' month' + (diffMonths > 1 ? 's' : '') + ' ago';
+            return diffYears + ' year' + (diffYears > 1 ? 's' : '') + ' ago';
+        }
+
+        function filterRepos() {
+            const searchTerm = $('#repoSearchInput').val().toLowerCase();
+            $('.repo-list-item').each(function() {
+                const repoName = $(this).find('.repo-list-name').text().toLowerCase();
+                if (repoName.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        function toggleLinkGroup(element) {
+            const linkList = $(element).next('.link-list');
+            const chevron = $(element).find('.fa-chevron-down, .fa-chevron-up');
+            linkList.slideToggle();
+            chevron.toggleClass('fa-chevron-down fa-chevron-up');
+        }
+
+        function convertUriToValidId(uri) {
+            return uri.replace(/[^A-Za-z0-9]/gi, '');
+        }
+
+        function showError(message) {
+            $('#errorMessage').text(message).show();
+        }
+
+        function resetToSearch() {
+            $('#searchBtn .btn-text').show();
+            $('#searchBtn .btn-spinner').hide();
+            $('#searchBtn').prop('disabled', false);
+        }
+
+        function resetSearch() {
+            $('#searchSection').show();
+            $('#resultsSection').hide();
+            $('#loadingSection').hide();
+            $('#sidePanel').removeClass('open');
+            $('#sidePanelOverlay').removeClass('open');
+            $('#userOrOrgInput').val('');
+            $('#reposContainer').empty();
+            $('#reposListContainer').empty();
+            allRepos = [];
+            checkedRepos.clear();
+        }
+
+        // Handle existing model data (backward compatibility)
+        @if (Model != null && Model.RepoUrlsAndDefaultBranch != null && Model.RepoUrlsAndDefaultBranch.Count > 0)
+        {
+            <text>
+            $(document).ready(function() {
+                $('#searchSection').hide();
+                $('#resultsSection').show();
+                
+                @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
+                {
+                    var repoName = repoUrlAndDefaultBranch.RepoUri.Segments.Last().TrimEnd('/');
+                    var fullName = repoUrlAndDefaultBranch.RepoUri.ToString().Replace("https://github.com/", "");
+                    <text>
+                    const repo = {
+                        url: '@repoUrlAndDefaultBranch.RepoUri',
+                        branch: '@repoUrlAndDefaultBranch.Branch',
+                        name: '@repoName',
+                        fullName: '@fullName',
+                        stars: 0
+                    };
+                    addRepoCard(repo);
+                    checkRepo(repo.url, repo.branch, repo.name);
+                    checkedRepos.add(repo.url);
+                    </text>
+                }
+            });
+            </text>
+        }
     </script>
-
-
-
-    @if (Model != null)
-{
-    @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
-    {
-        <script>
-                CheckRepo('@repoUrlAndDefaultBranch.RepoUri', '@repoUrlAndDefaultBranch.Branch');
-            </script>
-    }
 }
-
-
-}
-
-
-
