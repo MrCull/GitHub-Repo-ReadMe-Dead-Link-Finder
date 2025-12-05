@@ -298,7 +298,7 @@
             }
 
             if (okLinks.length > 0) {
-                detailsHtml += '<div class="link-group collapsible"><h4 class="link-group-title ok-title" onclick="toggleLinkGroup(this)"><i class="fa fa-check-circle"></i> OK Links (' + ok + ') <i class="fa fa-chevron-down"></i></h4><div class="link-list" data-link-type="ok" style="display: none;">';
+                detailsHtml += '<div class="link-group collapsible"><h4 class="link-group-title ok-title" onclick="toggleLinkGroup(this)"><i class="fa fa-check-circle"></i> OK Links (' + ok + ') <i class="fa fa-chevron-down"></i></h4><div class="link-list" data-link-type="ok">';
                 okLinks.forEach(function(link) {
                     detailsHtml += `<div class="link-item ok-link" data-link-type="ok">
                         <span class="link-status">${link.statusText} (${link.statusCode})</span>
@@ -424,27 +424,33 @@
             const showWarning = $('#badge-warning-' + repoId).hasClass('active');
             const showBad = $('#badge-bad-' + repoId).hasClass('active');
 
-            $('#link-details-' + repoId + ' .link-item').each(function() {
-                const linkType = $(this).data('link-type');
-                if ((linkType === 'ok' && showOk) || 
-                    (linkType === 'warning' && showWarning) || 
-                    (linkType === 'bad' && showBad)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
+            // Show/hide entire link groups based on badge state
+            // OK links
+            const $okGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="ok"]').closest('.link-group');
+            if (showOk && $okGroup.length > 0) {
+                $okGroup.show();
+                $okGroup.find('.link-list[data-link-type="ok"]').show();
+            } else if ($okGroup.length > 0) {
+                $okGroup.hide();
+            }
 
-            // Hide empty link groups
-            $('#link-details-' + repoId + ' .link-list').each(function() {
-                const $list = $(this);
-                const visibleItems = $list.find('.link-item:visible').length;
-                if (visibleItems === 0) {
-                    $list.closest('.link-group').hide();
-                } else {
-                    $list.closest('.link-group').show();
-                }
-            });
+            // Warning links
+            const $warningGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="warning"]').closest('.link-group');
+            if (showWarning && $warningGroup.length > 0) {
+                $warningGroup.show();
+                $warningGroup.find('.link-list[data-link-type="warning"]').show();
+            } else if ($warningGroup.length > 0) {
+                $warningGroup.hide();
+            }
+
+            // Bad links
+            const $badGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="bad"]').closest('.link-group');
+            if (showBad && $badGroup.length > 0) {
+                $badGroup.show();
+                $badGroup.find('.link-list[data-link-type="bad"]').show();
+            } else if ($badGroup.length > 0) {
+                $badGroup.hide();
+            }
         }
 
         function sortRepos() {
