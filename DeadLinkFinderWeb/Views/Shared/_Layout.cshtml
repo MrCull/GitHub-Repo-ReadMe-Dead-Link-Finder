@@ -21,27 +21,37 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-    <header class="modern-header">
-        <nav class="navbar navbar-expand-lg">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="fa fa-github"></i> README Link Checker
-                </a>
-            </div>
-        </nav>
+    <header class="gh-global-header">
+        <div class="gh-header-inner gh-header-compact">
+            <a class="gh-logo" asp-area="" asp-controller="Home" asp-action="Index" aria-label="GitHub README Link Checker">
+                <span class="gh-logo-mark" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.533 5.47 7.59.4.075.547-.173.547-.385 0-.19-.007-.693-.01-1.36-2.226.483-2.695-1.073-2.695-1.073-.364-.924-.89-1.17-.89-1.17-.727-.497.055-.487.055-.487.803.056 1.226.825 1.226.825.715 1.225 1.874.87 2.33.665.072-.518.28-.87.508-1.07-1.777-.202-3.644-.888-3.644-3.953 0-.873.312-1.587.823-2.147-.083-.202-.357-1.017.078-2.12 0 0 .67-.215 2.2.82a7.67 7.67 0 0 1 2-.27c.68.003 1.37.092 2 .27 1.53-1.035 2.2-.82 2.2-.82.435 1.103.162 1.918.08 2.12.513.56.822 1.274.822 2.147 0 3.073-1.87 3.748-3.65 3.947.287.246.543.734.543 1.48 0 1.068-.01 1.93-.01 2.193 0 .213.146.463.55.384A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+                    </svg>
+                </span>
+                <span class="gh-logo-text">README Link Checker</span>
+            </a>
+
+            <form class="gh-header-search" id="headerSearchForm" role="search">
+                <input type="search" id="headerSearchInput" placeholder="Search or jump to..." aria-label="Search GitHub user or org" />
+            </form>
+        </div>
     </header>
-    <main role="main">
+    <main class="gh-main" role="main">
         @RenderBody()
     </main>
 
-    <footer class="modern-footer">
-        <div class="container">
-            <p>&copy; @DateTime.Now.Year - GitHub README Link Checker</p>
-            <p class="footer-links">
-                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues" target="_blank">Report Issue</a>
-                <span class="separator">•</span>
-                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions" target="_blank">Discuss</a>
-            </p>
+    <footer class="gh-footer">
+        <div class="gh-footer-inner">
+            <div class="gh-footer-meta">
+                <span>© @DateTime.Now.Year</span>
+                <span class="gh-footer-title">GitHub README Link Checker</span>
+            </div>
+            <div class="gh-footer-links">
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues" target="_blank" rel="noopener">Report issue</a>
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions" target="_blank" rel="noopener">Discuss</a>
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" target="_blank" rel="noopener">Repository</a>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

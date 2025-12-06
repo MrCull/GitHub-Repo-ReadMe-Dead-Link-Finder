@@ -22,29 +22,59 @@ public class GitHubActiveReposFinder : IRepoFinder
         {
             throw new GitHubActiveReposFinderException("Cannot look for less than 1 Uris");
         }
-        if (numberOfUris > 999)
+
+        // If requesting a very large number (e.g., 10000), fetch all repos via pagination
+        bool fetchAll = numberOfUris >= 10000;
+
+        int itemsPerPage = 100; // Maximum allowed by GitHub
+        int page = 1;
+        bool hasMorePages = true;
+
+        while (hasMorePages)
         {
-            throw new GitHubActiveReposFinderException("Cannot look for more than 999 Uris");
-        }
-
-        int itemsPerPage = 100; // seems to be a maximum of 100 for GitHub
-        int pagesNeeded = (numberOfUris / itemsPerPage) + 1;
-
-        for (int page = 1; page <= pagesNeeded; page++)
-        {
-
             searchRepositoriesRequest.PerPage = itemsPerPage;
             searchRepositoriesRequest.Page = page;
 
             SearchRepositoryResult result = _githubClient.Search.SearchRepo(searchRepositoriesRequest).Result;
 
-            repoSearchResult.AddRange(result.Items.Select(repo => new RepoSearchResult(new Uri(repo.HtmlUrl), repo.DefaultBranch, repo.StargazersCount, repo.UpdatedAt, repo.SubscribersCount, repo.ForksCount)));
+            if (result.Items.Count == 0)
+            {
+                break;
+            }
 
+            repoSearchResult.AddRange(result.Items.Select(repo => new RepoSearchResult(
+                Uri: new Uri(repo.HtmlUrl),
+                Branch: repo.DefaultBranch,
+                Stars: repo.StargazersCount,
+                UpdatedAt: repo.UpdatedAt,
+                Watchers: repo.SubscribersCount,
+                Forks: repo.ForksCount,
+                Description: repo.Description,
+                Language: repo.Language,
+                License: repo.License?.SpdxId ?? repo.License?.Name,
+                Topics: repo.Topics?.ToList()
+            )));
+
+            // If fetching all, continue until we get a page with fewer than 100 items
+            if (fetchAll)
+            {
+                hasMorePages = result.Items.Count == itemsPerPage;
+                page++;
+            }
+            else
+            {
+                // Otherwise, stop when we have enough
+                hasMorePages = repoSearchResult.Count < numberOfUris && result.Items.Count == itemsPerPage;
+                if (hasMorePages)
+                {
+                    page++;
+                }
+            }
         }
 
         return repoSearchResult
             .Distinct()
-            .Take(numberOfUris);
+            .Take(fetchAll ? repoSearchResult.Count : numberOfUris);
     }
 
     public void SetGitHubCredentials(Credentials credential)

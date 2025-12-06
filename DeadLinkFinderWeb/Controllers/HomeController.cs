@@ -83,7 +83,7 @@ public class HomeController : Controller
 
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     [HttpGet]
-    public JsonResult GetUserRepos(string userOrOrg, bool includeForks = false, int maxRepos = 100)
+    public JsonResult GetUserRepos(string userOrOrg, bool includeForks = false, int maxRepos = 10000)
     {
         try
         {
@@ -98,12 +98,7 @@ public class HomeController : Controller
                 searchRequest.Fork = ForkQualifier.IncludeForks;
             }
 
-            // Limit to reasonable number
-            if (maxRepos > 100)
-            {
-                maxRepos = 100;
-            }
-
+            // Fetch all repos - no limit
             IEnumerable<RepoSearchResult> repoSearchResults = _gitHubActiveReposFinder.GetRepoSearchResults(maxRepos, searchRequest);
 
             var repos = repoSearchResults.Select(r => new
@@ -115,7 +110,11 @@ public class HomeController : Controller
                 stars = r.Stars,
                 watchers = r.Watchers ?? 0,
                 forks = r.Forks ?? 0,
-                updatedAt = r.UpdatedAt?.ToString("O") ?? null
+                updatedAt = r.UpdatedAt?.ToString("O") ?? null,
+                description = r.Description,
+                language = r.Language,
+                license = r.License,
+                topics = r.Topics ?? new List<string>()
             }).ToList();
 
             return Json(repos);

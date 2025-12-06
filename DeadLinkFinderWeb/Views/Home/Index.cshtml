@@ -4,22 +4,38 @@
     ViewData["Title"] = "GitHub README Link Checker";
 }
 
-<div class="main-container">
-    <!-- Search Section -->
-    <div class="search-section" id="searchSection">
-        <div class="search-container">
-            <h1 class="main-title">GitHub README Link Checker</h1>
-            <p class="subtitle">Check for broken links in your GitHub repository README files</p>
-            
-            <form id="searchForm" class="search-form">
+<div class="gh-page">
+    <div class="gh-page-container">
+        <section class="gh-profile-header">
+            <div class="gh-profile-left">
+                <div class="gh-avatar">
+                    <img id="profileAvatar" src="https://avatars.githubusercontent.com/u/0?v=4" alt="Profile avatar" />
+                </div>
+                <div class="gh-profile-text">
+                    <div class="gh-real-name" id="profileRealName">GitHub User</div>
+                    <div class="gh-username" id="profileUsername">&#64;github</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section class="gh-search-card" id="searchSection">
+            <div class="gh-search-header">
+                <div>
+                    <h1 class="main-title">GitHub README Link Checker</h1>
+                    <p class="subtitle">Check for broken links in your GitHub repository README files</p>
+                </div>
+            </div>
+            <form id="searchForm" class="gh-search-form">
                 <div class="input-group">
-                    <input type="text" 
-                           id="userOrOrgInput" 
-                           class="form-control modern-input" 
-                           placeholder="GitHub username or org" 
+                    <input type="text"
+                           id="userOrOrgInput"
+                           class="form-control gh-input"
+                           placeholder="GitHub username or org"
+                           aria-label="GitHub username or org"
                            required />
-                    <button type="submit" class="btn btn-primary modern-btn" id="searchBtn">
-                        <span class="btn-text">Check Repos</span>
+                    <button type="submit" class="gh-btn gh-btn-primary" id="searchBtn">
+                        <span class="btn-text">Check repos</span>
                         <span class="btn-spinner" style="display: none;">
                             <i class="fa fa-spinner fa-spin"></i>
                         </span>
@@ -27,68 +43,77 @@
                 </div>
                 <div class="error-message" id="errorMessage" style="display: none;"></div>
             </form>
-        </div>
-    </div>
+        </section>
 
-    <!-- Loading State -->
-    <div class="loading-section" id="loadingSection" style="display: none;">
-        <div class="loading-content">
-            <i class="fa fa-spinner fa-spin fa-3x"></i>
-            <p>Fetching repositories...</p>
-        </div>
-    </div>
+        <!-- Loading State -->
+        <section class="gh-loading" id="loadingSection" style="display: none;">
+            <div class="loading-content">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Fetching repositories...</p>
+            </div>
+        </section>
 
-    <!-- Results Section -->
-    <div class="results-section" id="resultsSection" style="display: none;">
-        <div class="results-header">
-            <div class="results-header-text">
-                <p class="results-description">Checking README links for your repositories. Use the panel to select which repos to check.</p>
+        <!-- Results Section -->
+        <section class="gh-results" id="resultsSection" style="display: none;">
+            <div class="repo-header">
+                <div class="repo-search-row">
+                    <input type="search" id="repoFilterInput" class="repo-search-input" placeholder="Find a repository..." aria-label="Find a repository" oninput="handleRepoFilterChange()" />
+                </div>
+                <div class="repo-toolbar-row">
+                    <span class="repo-count" id="repoCountLabel">0 repositories</span>
+                    <div class="repo-toolbar-right">
+                        <div class="repo-sort">
+                            <button class="repo-sort-trigger" id="sortTrigger" onclick="toggleSortMenu()">
+                                <span id="sortLabel">Last pushed</span>
+                                <span class="caret">▾</span>
+                            </button>
+                            <div class="repo-sort-menu" id="sortMenu" style="display: none;">
+                                <button data-key="pushed" class="sort-menu-btn" onclick="selectSort('pushed')">
+                                    <span class="menu-icon">↩</span>
+                                    <span class="menu-label">Last pushed</span>
+                                    <span class="tick" id="tick-pushed">✓</span>
+                                </button>
+                                <button data-key="name" class="sort-menu-btn" onclick="selectSort('name')">
+                                    <span class="menu-icon">Aa</span>
+                                    <span class="menu-label">Name</span>
+                                    <span class="tick" id="tick-name"></span>
+                                </button>
+                                <button data-key="stars" class="sort-menu-btn" onclick="selectSort('stars')">
+                                    <span class="menu-icon">★</span>
+                                    <span class="menu-label">Stars</span>
+                                    <span class="tick" id="tick-stars"></span>
+                                </button>
+                                <div class="menu-separator"></div>
+                                <button data-dir="asc" class="sort-menu-btn" onclick="selectDir('asc')">
+                                    <span class="menu-icon">↑</span>
+                                    <span class="menu-label">Ascending</span>
+                                    <span class="tick" id="tick-asc"></span>
+                                </button>
+                                <button data-dir="desc" class="sort-menu-btn" onclick="selectDir('desc')">
+                                    <span class="menu-icon">↓</span>
+                                    <span class="menu-label">Descending</span>
+                                    <span class="tick" id="tick-desc">✓</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="repo-view-toggle" title="Toggle list view">
+                            <svg class="icon" height="16" width="16" viewBox="0 0 16 16" aria-hidden="true">
+                                <path fill="currentColor" d="M1 3.75A.75.75 0 0 1 1.75 3h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 3.75Zm0 4A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75ZM1.75 11h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="results-header-actions">
-                <button class="btn btn-primary btn-sm sticky-select-btn" id="togglePanelBtn" onclick="toggleSidePanel()">
-                    <i class="fa fa-list"></i> Select Repos
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="resetSearch()">New Search</button>
-            </div>
-        </div>
-        
-        <div class="repos-container" id="reposContainer">
-            <!-- Repos will be dynamically added here -->
-        </div>
-    </div>
 
-    <!-- Side Panel Overlay -->
-    <div class="side-panel-overlay" id="sidePanelOverlay" onclick="toggleSidePanel()"></div>
+            <div class="repo-list" id="reposContainer">
+                <!-- Repos will be dynamically added here -->
+            </div>
 
-    <!-- Side Panel -->
-    <div class="side-panel" id="sidePanel">
-        <div class="side-panel-header">
-            <h3>Select Repositories</h3>
-            <button class="side-panel-close" onclick="toggleSidePanel()">
-                <i class="fa fa-times"></i>
-            </button>
-        </div>
-        <div class="side-panel-controls">
-            <div class="sort-control">
-                <label for="sortSelect">Sort by:</label>
-                <select id="sortSelect" class="form-control" onchange="sortRepos()">
-                    <option value="updated">Last Updated</option>
-                    <option value="name">Name A-Z</option>
-                </select>
+            <div class="gh-load-more" aria-label="Pagination">
+                <span class="gh-load-more-info" id="loadMoreInfo">0 shown · 0 more</span>
+                <button class="gh-btn gh-btn-ghost" type="button" id="loadMoreBtn" onclick="loadMoreRepos()">Load more</button>
             </div>
-            <div class="search-control">
-                <input type="text" 
-                       id="repoSearchInput" 
-                       class="form-control" 
-                       placeholder="Search repositories..." 
-                       onkeyup="filterRepos()" />
-            </div>
-        </div>
-        <div class="side-panel-content">
-            <div class="repos-list-container" id="reposListContainer">
-                <!-- Available repos will be listed here -->
-            </div>
-        </div>
+        </section>
     </div>
 </div>
 
@@ -100,6 +125,12 @@
         let checkedRepos = new Set();
         let currentUserOrOrg = '';
         const LAST_SEARCH_KEY = 'dlf:lastSearch';
+        const DEFAULT_AVATAR = 'https://avatars.githubusercontent.com/u/0?v=4';
+        let filterTerm = '';
+        let visibleCount = 5;
+        let sortBy = 'pushed';
+        let sortDir = 'desc';
+        let selectedTabs = {}; // Track selected tab for each repo
 
         function saveLastSearch(value) {
             try {
@@ -128,11 +159,20 @@
             }
         }
 
-        // Handle form submission
-        $('#searchForm').on('submit', function(e) {
-            e.preventDefault();
-            const userOrOrg = $('#userOrOrgInput').val().trim();
-            
+        function updateProfileHeader(userOrOrg, repoCount) {
+            const handle = userOrOrg || 'github';
+            const usernameText = String.fromCharCode(64) + handle;
+            $('#profileUsername').text(usernameText);
+            $('#profileRealName').text(userOrOrg || 'GitHub User');
+            $('#profileAvatar')
+                .attr('src', `https://avatars.githubusercontent.com/${handle}`)
+                .attr('alt', `${handle} avatar`)
+                .on('error', function() {
+                    $(this).attr('src', DEFAULT_AVATAR);
+                });
+        }
+
+        function startUserSearch(userOrOrg) {
             if (!userOrOrg) {
                 showError('Please enter a GitHub username or organization');
                 return;
@@ -140,6 +180,8 @@
 
             currentUserOrOrg = userOrOrg;
             clearLastSearch();
+            updateProfileHeader(userOrOrg, 0);
+            $('#userOrOrgInput').val(userOrOrg);
             $('#searchSection').hide();
             $('#loadingSection').show();
             $('#errorMessage').hide();
@@ -147,16 +189,26 @@
             $('#searchBtn .btn-spinner').show();
             $('#searchBtn').prop('disabled', true);
 
-            // Fetch repos and start checking
             fetchAndCheckRepos(userOrOrg);
+        }
+
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            const userOrOrg = $('#userOrOrgInput').val().trim();
+            startUserSearch(userOrOrg);
+        });
+
+        $('#headerSearchForm').on('submit', function(e) {
+            e.preventDefault();
+            const userOrOrg = $('#headerSearchInput').val().trim();
+            startUserSearch(userOrOrg);
         });
 
         function fetchAndCheckRepos(userOrOrg) {
-            // First, get all available repos
             $.ajax({
                 type: 'GET',
                 url: '@Url.Action("GetUserRepos", "Home")',
-                data: { userOrOrg: userOrOrg, maxRepos: 100 },
+                data: { userOrOrg: userOrOrg },
                 dataType: 'json',
                 success: function(repos) {
                     if (repos.error) {
@@ -168,69 +220,187 @@
                     allRepos = repos;
                     checkedRepos.clear();
                     saveLastSearch(userOrOrg);
+                    updateProfileHeader(userOrOrg, repos.length);
 
-                    // Get the 5 most recent repos
-                    const reposToCheck = repos.slice(0, 5);
-                    
+                    filterTerm = '';
+                    visibleCount = 5;
+                    sortBy = 'pushed';
+                    sortDir = 'desc';
+                    $('#repoFilterInput').val('');
+                    updateSortUI();
                     $('#loadingSection').hide();
                     $('#resultsSection').show();
-                    $('#reposContainer').empty();
-
-                    // Display all repos in side panel
-                    displayAvailableRepos(repos);
-
-                    // Auto-check and start checking first 5 repos
-                    reposToCheck.forEach(function(repo) {
-                        addRepoCard(repo);
-                        checkRepo(repo.url, repo.branch, repo.name);
-                        checkedRepos.add(repo.url);
-                        // Update checkbox in side panel
-                        $(`.repo-checkbox[value="${repo.url}"]`).prop('checked', true);
-                    });
-
+                    renderRepoList();
                     resetToSearch();
                 },
-                error: function(xhr) {
+                error: function() {
                     showError('Failed to fetch repositories. Please check the username/organization name.');
                     resetToSearch();
                 }
             });
         }
 
+        function getFilteredRepos() {
+            const base = [...allRepos];
+            let filtered = base;
+            if (filterTerm) {
+                const escaped = filterTerm.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*');
+                const regex = new RegExp(escaped, 'i');
+                filtered = base.filter(repo => regex.test(repo.name));
+            }
+
+            filtered.sort(function(a, b) {
+                if (sortBy === 'name') {
+                    const nameA = (a.name || '').toLowerCase();
+                    const nameB = (b.name || '').toLowerCase();
+                    return sortDir === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                }
+                if (sortBy === 'stars') {
+                    const sa = a.stars || 0;
+                    const sb = b.stars || 0;
+                    return sortDir === 'asc' ? sa - sb : sb - sa;
+                }
+                // pushed/updated
+                const da = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+                const db = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+                return sortDir === 'asc' ? da - db : db - da;
+            });
+
+            return filtered;
+        }
+
+        function renderRepoList() {
+            const container = $('#reposContainer');
+            container.empty();
+            const filtered = getFilteredRepos();
+            const slice = filtered.slice(0, visibleCount);
+
+            if (slice.length === 0) {
+                container.append('<div class="gh-empty-state">No repositories found.</div>');
+            } else {
+                slice.forEach(function(repo) {
+                    addRepoCard(repo);
+                    if (!checkedRepos.has(repo.url)) {
+                        checkRepo(repo.url, repo.branch, repo.name);
+                        checkedRepos.add(repo.url);
+                    }
+                });
+            }
+
+            const total = filtered.length;
+            const showing = Math.min(visibleCount, total);
+            const remaining = Math.max(total - showing, 0);
+            $('#repoCountLabel').text(`${total} repositories`);
+            $('#loadMoreInfo').text(`${showing} shown · ${remaining} more`);
+
+            if (remaining > 0) {
+                $('#loadMoreBtn').show();
+            } else {
+                $('#loadMoreBtn').hide();
+            }
+        }
+
+        function handleRepoFilterChange() {
+            filterTerm = $('#repoFilterInput').val().trim();
+            visibleCount = 5;
+            renderRepoList();
+        }
+
+        function toggleSortMenu() {
+            const menu = $('#sortMenu');
+            menu.toggle();
+        }
+
+        function selectSort(key) {
+            sortBy = key;
+            visibleCount = 5;
+            updateSortUI();
+            renderRepoList();
+            $('#sortMenu').hide();
+        }
+
+        function selectDir(dir) {
+            sortDir = dir;
+            visibleCount = 5;
+            updateSortUI();
+            renderRepoList();
+            $('#sortMenu').hide();
+        }
+
+        function updateSortUI() {
+            // Update sort label
+            const labels = {pushed: 'Last pushed', name: 'Name', stars: 'Stars'};
+            $('#sortLabel').text(labels[sortBy] || 'Last pushed');
+            
+            // Update checkmarks
+            $('.tick').text('');
+            $('#tick-' + sortBy).text('✓');
+            $('#tick-' + sortDir).text('✓');
+            
+            // Update active states
+            $('.sort-menu-btn').removeClass('is-active');
+            $('[data-key="' + sortBy + '"]').addClass('is-active');
+            $('[data-dir="' + sortDir + '"]').addClass('is-active');
+        }
+
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.repo-sort').length) {
+                $('#sortMenu').hide();
+            }
+        });
+
+        function loadMoreRepos() {
+            visibleCount += 5;
+            renderRepoList();
+        }
+
         function addRepoCard(repo) {
             const repoId = convertUriToValidId(repo.url);
+            const updatedAtText = repo.updatedAt ? `Updated ${formatRelativeTime(new Date(repo.updatedAt))}` : '';
+            const languageName = repo.language || '';
+            const languageColor = getLanguageColor(languageName);
+            const stars = repo.stars ?? 0;
+            const forks = repo.forks ?? 0;
+            const license = repo.license || 'Other';
+            const description = repo.description || '';
+            const topics = repo.topics || [];
+
             const cardHtml = `
                 <div class="repo-card" id="repo-card-${repoId}" data-repo-url="${repo.url}">
-                    <button class="repo-card-close" onclick="removeRepoCard('${repo.url}')" title="Remove">
-                        <i class="fa fa-times"></i>
-                    </button>
-                    <div class="repo-card-header">
-                        <div class="repo-status" id="repo-status-${repoId}">
-                            <div class="status-checking" title="Checking" aria-label="Checking" role="status">
-                                <i class="fa fa-spinner fa-spin"></i>
-                            </div>
+                    <div class="repo-main">
+                        <div class="repo-header-row">
+                            <a class="repo-title" href="${repo.url}" target="_blank" rel="noopener">${repo.name}</a>
+                            <span class="repo-visibility">Public</span>
                         </div>
-                        <div class="repo-info">
-                            <h3 class="repo-name">
-                                <a href="${repo.url}" target="_blank">${repo.name}</a>
-                            </h3>
-                            <div class="repo-meta">
-                                <span class="repo-meta-item"><i class="fa fa-star"></i> ${repo.stars} stars</span>
-                                <span class="repo-meta-item"><i class="fa fa-eye"></i> ${repo.watchers || 0} watching</span>
-                                <span class="repo-meta-item"><i class="fa fa-code-fork"></i> ${repo.forks || 0} forks</span>
-                                ${repo.updatedAt ? `<span class="repo-meta-item"><i class="fa fa-clock-o"></i> ${formatRelativeTime(new Date(repo.updatedAt))}</span>` : ''}
-                            </div>
+                        ${description ? `<p class="repo-description">${description}</p>` : ''}
+                        ${topics.length > 0 ? `<div class="repo-topics">${topics.slice(0, 8).map(t => `<a href="#" class="repo-topic">${t}</a>`).join('')}</div>` : ''}
+                        <div class="repo-meta">
+                            ${languageName ? `<span class="repo-language">
+                                <span class="language-dot" style="background-color:${languageColor};"></span>
+                                ${languageName}
+                            </span>` : ''}
+                            <span class="repo-license">
+                                <svg class="icon icon-scales" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z"></path>
+                                </svg>
+                                ${license}
+                            </span>
+                            <span class="repo-metric">
+                                <svg class="icon icon-star" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path>
+                                </svg>
+                                ${stars}
+                            </span>
+                            <span class="repo-metric">
+                                <svg class="icon icon-fork" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path>
+                                </svg>
+                                ${forks}
+                            </span>
                         </div>
-                    </div>
-                    <div class="repo-card-body" id="repo-body-${repoId}">
-                        <div class="link-counts" id="link-counts-${repoId}" style="display: none;">
-                            <span class="badge badge-ok filter-badge" data-filter="ok" onclick="toggleBadgeFilter('${repoId}', 'ok')" id="badge-ok-${repoId}">0 OK</span>
-                            <span class="badge badge-warning filter-badge active" data-filter="warning" onclick="toggleBadgeFilter('${repoId}', 'warning')" id="badge-warning-${repoId}">0 Warning</span>
-                            <span class="badge badge-error filter-badge active" data-filter="bad" onclick="toggleBadgeFilter('${repoId}', 'bad')" id="badge-error-${repoId}">0 Bad</span>
-                        </div>
-                        <div class="link-details" id="link-details-${repoId}" style="display: none;">
-                            <!-- Link details will be added here -->
-                        </div>
+                        ${updatedAtText ? `<div class="repo-updated">${updatedAtText}</div>` : ''}
+                        <div class="repo-link-status" id="link-counts-${repoId}"></div>
                     </div>
                 </div>
             `;
@@ -281,142 +451,87 @@
                 }
             });
 
-            // Update status indicator
-            let statusHtml = '<div class="status-success" title="All links OK" aria-label="All links OK" role="status"><i class="fa fa-check-circle"></i></div>';
-            let statusClass = 'status-success';
-            if (bad > 0) {
-                statusHtml = '<div class="status-error" title="Issues found" aria-label="Issues found" role="status"><i class="fa fa-times-circle"></i></div>';
-                statusClass = 'status-error';
-            } else if (warning > 0) {
-                statusHtml = '<div class="status-warning" title="Warnings found" aria-label="Warnings found" role="status"><i class="fa fa-exclamation-triangle"></i></div>';
-                statusClass = 'status-warning';
-            }
-            $('#repo-status-' + repoId).html(statusHtml);
-            $('#repo-card-' + repoId).addClass(statusClass);
-
-            // Update counts
-            $('#badge-ok-' + repoId).text(ok + ' OK');
-            $('#badge-warning-' + repoId).text(warning + ' Warning');
-            $('#badge-error-' + repoId).text(bad + ' Bad');
-            $('#link-counts-' + repoId).show();
-
-            // Add link details
-            let detailsHtml = '';
-            
-            if (badLinks.length > 0) {
-                detailsHtml += '<div class="link-group"><h4 class="link-group-title error-title"><i class="fa fa-times-circle"></i> Bad Links (' + bad + ')</h4><div class="link-list" data-link-type="bad">';
-                badLinks.forEach(function(link) {
-                    detailsHtml += `<div class="link-item error-link" data-link-type="bad">
-                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
-                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
-                    </div>`;
-                });
-                detailsHtml += '</div></div>';
-            }
-
-            if (warningLinks.length > 0) {
-                detailsHtml += '<div class="link-group"><h4 class="link-group-title warning-title"><i class="fa fa-exclamation-triangle"></i> Warning Links (' + warning + ')</h4><div class="link-list" data-link-type="warning">';
-                warningLinks.forEach(function(link) {
-                    detailsHtml += `<div class="link-item warning-link" data-link-type="warning">
-                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
-                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
-                    </div>`;
-                });
-                detailsHtml += '</div></div>';
-            }
-
-            if (okLinks.length > 0) {
-                detailsHtml += '<div class="link-group collapsible"><h4 class="link-group-title ok-title" onclick="toggleLinkGroup(this)"><i class="fa fa-check-circle"></i> OK Links (' + ok + ') <i class="fa fa-chevron-down"></i></h4><div class="link-list" data-link-type="ok">';
-                okLinks.forEach(function(link) {
-                    detailsHtml += `<div class="link-item ok-link" data-link-type="ok">
-                        <span class="link-status">${link.statusText} (${link.statusCode})</span>
-                        <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
-                    </div>`;
-                });
-                detailsHtml += '</div></div>';
-            }
-
-            if (detailsHtml) {
-                $('#link-details-' + repoId).html(detailsHtml).show();
-                setBadgeDefaults(repoId);
-            }
-        }
-
-        function displayAvailableRepos(repos) {
-            const container = $('#reposListContainer');
-            container.empty();
-            
-            repos.forEach(function(repo) {
-                const repoId = convertUriToValidId(repo.url);
-                const isChecked = checkedRepos.has(repo.url);
-                const updatedDate = repo.updatedAt ? new Date(repo.updatedAt) : null;
-                const updatedText = updatedDate ? formatRelativeTime(updatedDate) : '';
-                const checkboxHtml = `
-                    <div class="repo-list-item ${isChecked ? 'checked' : ''}" data-repo-url="${repo.url}" data-repo-name="${repo.name.toLowerCase()}" data-updated="${repo.updatedAt || ''}">
-                        <label class="repo-checkbox-label">
-                            <input type="checkbox" 
-                                   class="repo-checkbox" 
-                                   value="${repo.url}" 
-                                   data-branch="${repo.branch}"
-                                   data-name="${repo.name}"
-                                   data-fullname="${repo.fullName}"
-                                   data-stars="${repo.stars}"
-                                   data-watchers="${repo.watchers || 0}"
-                                   data-forks="${repo.forks || 0}"
-                                   data-updated="${repo.updatedAt || ''}"
-                                   ${isChecked ? 'checked' : ''}
-                                   onchange="handleRepoCheckboxChange(this)" />
-                            <div class="repo-list-content">
-                                <span class="repo-list-name">${repo.name}</span>
-                                <div class="repo-list-meta">
-                                    <span class="repo-list-stars"><i class="fa fa-star"></i> ${repo.stars}</span>
-                                    ${updatedText ? `<span class="repo-list-updated">${updatedText}</span>` : ''}
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                `;
-                container.append(checkboxHtml);
-            });
-            
-            // Apply current sort
-            sortRepos();
-        }
-
-        function toggleSidePanel() {
-            const panel = $('#sidePanel');
-            const overlay = $('#sidePanelOverlay');
-            if (panel.hasClass('open')) {
-                panel.removeClass('open');
-                overlay.removeClass('open');
-            } else {
-                panel.addClass('open');
-                overlay.addClass('open');
-            }
-        }
-
-        function handleRepoCheckboxChange(checkbox) {
-            const $checkbox = $(checkbox);
-            const repoUrl = $checkbox.val();
-            const repo = {
-                url: repoUrl,
-                branch: $checkbox.data('branch'),
-                name: $checkbox.data('name'),
-                fullName: $checkbox.data('fullname'),
-                stars: $checkbox.data('stars')
+            // Store link data for this repo
+            window['repoLinks_' + repoId] = {
+                ok: okLinks,
+                warning: warningLinks,
+                broken: badLinks
             };
 
-            if ($checkbox.is(':checked')) {
-                // Add repo card and start checking
-                if (!checkedRepos.has(repoUrl)) {
-                    addRepoCard(repo);
-                    checkRepo(repo.url, repo.branch, repo.name);
-                    checkedRepos.add(repoUrl);
-                }
-            } else {
-                // Remove repo card
-                removeRepoCard(repoUrl);
+            // Always show all three tabs, always default to "broken"
+            const allTabs = [
+                { status: 'broken', label: 'Broken links', count: bad },
+                { status: 'warning', label: 'Links with Warnings', count: warning },
+                { status: 'ok', label: 'Working links', count: ok }
+            ];
+
+            // Always default to broken tab
+            const defaultTab = 'broken';
+            selectedTabs[repoId] = defaultTab;
+
+            // Build tabs HTML - always show all 3 tabs
+            let tabsHtml = '<div class="repo-tabs" id="tabs-' + repoId + '">';
+            allTabs.forEach(function(tab) {
+                const activeClass = tab.status === defaultTab ? ' active' : '';
+                tabsHtml += `<button class="repo-tab${activeClass}" data-repo-id="${repoId}" data-status="${tab.status}" onclick="switchRepoTab('${repoId}', '${tab.status}')">
+                    ${tab.label} (${tab.count})
+                </button>`;
+            });
+            tabsHtml += '</div>';
+
+            // Build initial tab content
+            tabsHtml += '<div class="repo-tab-content" id="tab-content-' + repoId + '">';
+            tabsHtml += buildTabContent(repoId, defaultTab);
+            tabsHtml += '</div>';
+
+            // Replace the old badges with new tabs
+            $('#link-counts-' + repoId).replaceWith(tabsHtml);
+            $('#link-details-' + repoId).hide();
+        }
+
+        function buildTabContent(repoId, status) {
+            const links = window['repoLinks_' + repoId];
+            if (!links || !links[status]) return '<div class="tab-empty-state">No links checked yet.</div>';
+
+            const statusLinks = links[status];
+            
+            // If no links for this status, show empty state
+            if (statusLinks.length === 0) {
+                let emptyMessage = 'No links in this category.';
+                if (status === 'broken') emptyMessage = 'No broken links found! 🎉';
+                else if (status === 'warning') emptyMessage = 'No warnings found.';
+                else if (status === 'ok') emptyMessage = 'No working links yet.';
+                
+                return `<div class="tab-empty-state">${emptyMessage}</div>`;
             }
+            
+            let contentHtml = '<div class="link-list">';
+            
+            statusLinks.forEach(function(link) {
+                let itemClass = 'link-item';
+                if (status === 'broken') itemClass += ' error-link';
+                else if (status === 'warning') itemClass += ' warning-link';
+                else if (status === 'ok') itemClass += ' ok-link';
+
+                contentHtml += `<div class="${itemClass}">
+                    <span class="link-status">${link.statusText} (${link.statusCode})</span>
+                    <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
+                </div>`;
+            });
+            
+            contentHtml += '</div>';
+            return contentHtml;
+        }
+
+        function switchRepoTab(repoId, status) {
+            selectedTabs[repoId] = status;
+
+            // Update active tab
+            $('#tabs-' + repoId + ' .repo-tab').removeClass('active');
+            $('#tabs-' + repoId + ' .repo-tab[data-status="' + status + '"]').addClass('active');
+
+            // Update content
+            $('#tab-content-' + repoId).html(buildTabContent(repoId, status));
         }
 
         function removeRepoCard(repoUrl) {
@@ -424,89 +539,13 @@
             const $card = $('#repo-card-' + repoId);
             
             if ($card.length) {
-                $card.fadeOut(300, function() {
+                $card.fadeOut(200, function() {
                     $(this).remove();
                 });
             }
-            
-            // Uncheck in side panel
-            $(`.repo-checkbox[value="${repoUrl}"]`).prop('checked', false);
             checkedRepos.delete(repoUrl);
         }
 
-        function toggleBadgeFilter(repoId, filterType) {
-            const $badge = $('#badge-' + filterType + '-' + repoId);
-            $badge.toggleClass('active');
-            applyBadgeFilters(repoId);
-        }
-
-        function setBadgeDefaults(repoId) {
-            $('#badge-ok-' + repoId).removeClass('active');
-            $('#badge-warning-' + repoId).addClass('active');
-            $('#badge-bad-' + repoId).addClass('active');
-            applyBadgeFilters(repoId);
-        }
-
-        function applyBadgeFilters(repoId) {
-            const showOk = $('#badge-ok-' + repoId).hasClass('active');
-            const showWarning = $('#badge-warning-' + repoId).hasClass('active');
-            const showBad = $('#badge-bad-' + repoId).hasClass('active');
-
-            // Show/hide entire link groups based on badge state
-            // OK links
-            const $okGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="ok"]').closest('.link-group');
-            if (showOk && $okGroup.length > 0) {
-                $okGroup.show();
-                $okGroup.find('.link-list[data-link-type="ok"]').show();
-            } else if ($okGroup.length > 0) {
-                $okGroup.hide();
-            }
-
-            // Warning links
-            const $warningGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="warning"]').closest('.link-group');
-            if (showWarning && $warningGroup.length > 0) {
-                $warningGroup.show();
-                $warningGroup.find('.link-list[data-link-type="warning"]').show();
-            } else if ($warningGroup.length > 0) {
-                $warningGroup.hide();
-            }
-
-            // Bad links
-            const $badGroup = $('#link-details-' + repoId).find('.link-list[data-link-type="bad"]').closest('.link-group');
-            if (showBad && $badGroup.length > 0) {
-                $badGroup.show();
-                $badGroup.find('.link-list[data-link-type="bad"]').show();
-            } else if ($badGroup.length > 0) {
-                $badGroup.hide();
-            }
-        }
-
-        function sortRepos() {
-            const sortBy = $('#sortSelect').val();
-            const container = $('#reposListContainer');
-            const items = container.find('.repo-list-item').toArray();
-
-            items.sort(function(a, b) {
-                if (sortBy === 'name') {
-                    const nameA = $(a).data('repo-name') || '';
-                    const nameB = $(b).data('repo-name') || '';
-                    return nameA.localeCompare(nameB);
-                } else {
-                    // Sort by updated date (most recent first)
-                    const dateA = $(a).data('updated') || '';
-                    const dateB = $(b).data('updated') || '';
-                    if (!dateA && !dateB) return 0;
-                    if (!dateA) return 1;
-                    if (!dateB) return -1;
-                    return new Date(dateB) - new Date(dateA);
-                }
-            });
-
-            container.empty();
-            items.forEach(function(item) {
-                container.append(item);
-            });
-        }
 
         function formatRelativeTime(date) {
             const now = new Date();
@@ -525,24 +564,32 @@
             return diffYears + ' year' + (diffYears > 1 ? 's' : '') + ' ago';
         }
 
-        function filterRepos() {
-            const searchTerm = $('#repoSearchInput').val().toLowerCase();
-            $('.repo-list-item').each(function() {
-                const repoName = $(this).find('.repo-list-name').text().toLowerCase();
-                if (repoName.includes(searchTerm)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
+        function formatAbsoluteDate(date) {
+            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
-        function toggleLinkGroup(element) {
-            const linkList = $(element).next('.link-list');
-            const chevron = $(element).find('.fa-chevron-down, .fa-chevron-up');
-            linkList.slideToggle();
-            chevron.toggleClass('fa-chevron-down fa-chevron-up');
+        function getLanguageColor(language) {
+            const colors = {
+                'C#': '#178600',
+                'TypeScript': '#3178c6',
+                'JavaScript': '#f1e05a',
+                'HTML': '#e34c26',
+                'Python': '#3572A5',
+                'Go': '#00ADD8',
+                'Vue': '#41b883',
+                'Code': '#6e7781'
+            };
+            return colors[language] || '#6e7781';
         }
+
+        function getStarSvg() {
+            return '<svg aria-hidden="true" height="16" width="16" viewBox="0 0 16 16" class="gh-icon"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.28l-3.046 2.97.719 4.19a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.19L.818 6.375a.75.75 0 0 1 .416-1.28l4.21-.612L7.327.668A.75.75 0 0 1 8 .25Z"></path></svg>';
+        }
+
+        function getForkSvg() {
+            return '<svg aria-hidden="true" height="16" width="16" viewBox="0 0 16 16" class="gh-icon"><path fill="currentColor" d="M5 3.25a2.25 2.25 0 1 1-3 2.122V6.5A2.5 2.5 0 0 0 4.5 9h1.128a2.25 2.25 0 0 1 1.592.659l1.914 1.914V9.372A2.5 2.5 0 0 0 11.5 7H12V5.372a2.25 2.25 0 1 1 1.5 0V7h-.5a1 1 0 0 0-1 1v4.128a2.25 2.25 0 1 1-1.5 0V12L8.586 9.586a.75.75 0 0 0-.53-.22H6.5A3.5 3.5 0 0 1 3 5.372V5.5a2.25 2.25 0 1 1 2 0v-.128c0-.262-.027-.517-.078-.763A2.25 2.25 0 0 1 5 3.25Zm-1.5 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8 9a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm1.5-8a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>';
+        }
+
 
         function convertUriToValidId(uri) {
             return uri.replace(/[^A-Za-z0-9]/gi, '');
@@ -562,14 +609,17 @@
             $('#searchSection').show();
             $('#resultsSection').hide();
             $('#loadingSection').hide();
-            $('#sidePanel').removeClass('open');
-            $('#sidePanelOverlay').removeClass('open');
             $('#userOrOrgInput').val('');
             $('#reposContainer').empty();
-            $('#reposListContainer').empty();
             allRepos = [];
             checkedRepos.clear();
+            filterTerm = '';
+            visibleCount = 5;
+            sortBy = 'pushed';
+            sortDir = 'desc';
+            $('#loadMoreBtn').hide();
             clearLastSearch();
+            updateProfileHeader('', 0);
         }
 
         // Handle existing model data (backward compatibility)
@@ -579,24 +629,26 @@
             $(document).ready(function() {
                 $('#searchSection').hide();
                 $('#resultsSection').show();
-                
+                updateProfileHeader('github', @Model.RepoUrlsAndDefaultBranch.Count);
+                const preloadRepos = [];
                 @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
                 {
                     var repoName = repoUrlAndDefaultBranch.RepoUri.Segments.Last().TrimEnd('/');
                     var fullName = repoUrlAndDefaultBranch.RepoUri.ToString().Replace("https://github.com/", "");
                     <text>
-                    const repo = {
+                    preloadRepos.push({
                         url: '@repoUrlAndDefaultBranch.RepoUri',
                         branch: '@repoUrlAndDefaultBranch.Branch',
                         name: '@repoName',
                         fullName: '@fullName',
                         stars: 0
-                    };
-                    addRepoCard(repo);
-                    checkRepo(repo.url, repo.branch, repo.name);
-                    checkedRepos.add(repo.url);
+                    });
                     </text>
                 }
+                allRepos = preloadRepos;
+                filterTerm = '';
+                visibleCount = Math.min(5, allRepos.length || 5);
+                renderRepoList();
             });
             </text>
         }
