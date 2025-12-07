@@ -1,4 +1,4 @@
-﻿using DeadLinkFinderWeb.Models;
+using DeadLinkFinderWeb.Models;
 using GitHubRepoFinder;
 using LinksChecker;
 using Microsoft.AspNetCore.Mvc;
@@ -83,10 +83,20 @@ public class HomeController : Controller
 
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     [HttpGet]
-    public JsonResult GetUserRepos(string userOrOrg, bool includeForks = false, int maxRepos = 10000)
+    public JsonResult GetUserRepos(string userOrOrg, bool includeForks = false, int maxRepos = 999)
     {
         try
         {
+            // Cap maxRepos at 999 due to GitHub API limitations
+            if (maxRepos > 999)
+            {
+                maxRepos = 999;
+            }
+            if (maxRepos < 1)
+            {
+                maxRepos = 1;
+            }
+
             var searchRequest = new SearchRepositoriesRequest();
             searchRequest.User = userOrOrg;
             searchRequest.SortField = RepoSearchSort.Updated;
@@ -98,7 +108,7 @@ public class HomeController : Controller
                 searchRequest.Fork = ForkQualifier.IncludeForks;
             }
 
-            // Fetch all repos - no limit
+            // Fetch repos with validated limit
             IEnumerable<RepoSearchResult> repoSearchResults = _gitHubActiveReposFinder.GetRepoSearchResults(maxRepos, searchRequest);
 
             var repos = repoSearchResults.Select(r => new
@@ -122,7 +132,12 @@ public class HomeController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching repos for {UserOrOrg}", userOrOrg);
-            return Json(new { error = "Failed to fetch repositories. Please check the username/organization name." });
+            var errorMessage = $"Failed to fetch repositories: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" Inner: {ex.InnerException.Message}";
+            }
+            return Json(new { error = errorMessage, exceptionType = ex.GetType().Name });
         }
     }
 
