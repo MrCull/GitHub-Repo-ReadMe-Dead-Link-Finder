@@ -127,6 +127,13 @@
         let sortDir = 'desc';
         let selectedTabs = {}; // Track selected tab for each repo
 
+        // GA helper
+        function isGaReady() { return typeof gtag === 'function'; }
+        function trackEvent(name, params) {
+            if (!isGaReady()) return;
+            gtag('event', name, params || {});
+        }
+
         function saveLastSearch(value) {
             try {
                 if (value) {
@@ -183,6 +190,11 @@
             $('#searchBtn .btn-text').hide();
             $('#searchBtn .btn-spinner').show();
             $('#searchBtn').prop('disabled', true);
+
+            trackEvent('repo_search', {
+                search_term: userOrOrg,
+                source: 'form'
+            });
 
             fetchAndCheckRepos(userOrOrg);
         }
@@ -346,7 +358,19 @@
         });
 
         function loadMoreRepos() {
+            const filtered = getFilteredRepos();
+            const total = filtered.length;
+            const before = Math.min(visibleCount, total);
             visibleCount += 5;
+            const after = Math.min(visibleCount, total);
+            const added = Math.max(after - before, 0);
+
+            trackEvent('load_more', {
+                added,
+                showing: after,
+                total
+            });
+
             renderRepoList();
         }
 
@@ -506,6 +530,15 @@
             const currentTab = selectedTabs[repoId] || 'broken';
             $('#tab-content-' + repoId).html(buildTabContent(repoId, currentTab));
             $('#link-details-' + repoId).hide();
+
+            // GA event for completion
+            trackEvent('link_check_complete', {
+                repo_id: repoId,
+                repo_name: repoName,
+                broken: bad,
+                warning: warning,
+                ok: ok
+            });
         }
 
         function buildTabContent(repoId, status) {
@@ -555,6 +588,11 @@
 
             // Update content
             $('#tab-content-' + repoId).html(buildTabContent(repoId, status));
+
+            trackEvent('link_tab_selected', {
+                repo_id: repoId,
+                status: status
+            });
         }
 
         // Event delegation for tabs (keeps working after dynamic updates)
