@@ -1,0 +1,10 @@
+# robots.txt for GitHub README Checker
+User-agent: *
+Allow: /
+Disallow: /lib/
+Disallow: /css/
+Disallow: /js/
+
+# Sitemap
+Sitemap: https://githubreadmechecker.com/sitemap.xml
+

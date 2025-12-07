@@ -1,0 +1,209 @@
+﻿﻿@using System.Text.RegularExpressions
+@model DeadLinkFinderWeb.Models.RepoCheckerModel
+
+@{
+    ViewData["Title"] = "Search Repos' readme...";
+}
+
+<h4>Repo Search</h4>
+<hr />
+<div class="row">
+    <div class="col-md-3">
+        <form asp-controller="Home" asp-action="Search" method="get">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="SingleRepoUri" class="control-label"></label>
+                <input id="serchFormUri" asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
+                <span asp-validation-for="SingleRepoUri" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="User" class="control-label"></label>
+                <input asp-for="User" class="form-control" title="e.g. google" />
+                <span asp-validation-for="User" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="NumberOfReposToSearchFor" class="control-label"></label>
+                <input id="serchFormNumberOfReposToSearchFor" asp-for="NumberOfReposToSearchFor" class="form-control" placeholder="5" title="e.g. 10" />
+                <span asp-validation-for="NumberOfReposToSearchFor" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MinStar" class="control-label"></label>
+                <input asp-for="MinStar" class="form-control" placeholder="0" />
+                <span asp-validation-for="MinStar" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdatedAfter" class="control-label"></label>
+                <input asp-for="UpdatedAfter" class="form-control" />
+                <span asp-validation-for="UpdatedAfter" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SearchSort" class="control-label"></label>
+                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.RepoSearchSort)).OrderByDescending(em => em.Value)" class="form-control"></select>
+                <span asp-validation-for="SearchSort" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SortAscDsc" class="control-label"></label>
+                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
+                <span asp-validation-for="SortAscDsc" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input id="serchFormButton" type="submit" value="Search for Repo(s)" class="btn btn-primary" />
+            </div>
+            <div class="form-group">
+                <a asp-action="Index">Reset Search</a>
+                <br />
+                <br />
+                Found an <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues">Issue</a> with this tool, or would like to <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions">Discuss</a> something?
+            </div>
+        </form>
+    </div>
+
+
+    @if (Model != null)
+    {
+        <div class="col-sm-9">
+            <div class="container">
+                <div id="accordion">
+                    @foreach (var uri in Model.RepoUrlsAndDefaultBranch.Select(u => u.RepoUri))
+                    {
+                        <div class="card">
+                            <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class='fa fa-plus'></i></a>
+                                <b id="card_img_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"></b>
+                                <a data-toggle="collapse" href="@uri">@uri</a>
+                            </div>
+                            <div id='collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")' class="collapse show" data-parent="#accordion">
+                                <div class="card-body" id="card_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
+                                    <img id="checking_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")" src='../images/checking-icon.gif' alt='icon' width='25' height='25' />
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+
+                    <a asp-action="Index">Reset Search</a>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+                function CheckRepo(uri, branch) {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("CheckRepo")',
+                    data: { 'projectBaseUrl': uri, 'branch': branch },
+                    dataType: "json",
+                    cache: false,
+                    success: function (data) {
+                        var ok = 0;
+                        var bad = 0;
+                        var warning = 0;
+                        var body = "";
+                        $.each(data, function (key) {
+
+
+                            body += " <tr class='table-slim'>";
+                            body += "<td nowrap ><img src='../images/";
+
+                            if (data[key].httpStatusCode == 200) {
+                                body += "ok-icon.png";
+                                ok = ok + 1;
+                            }
+                            else if (data[key].httpStatusCode == 404) {
+                                bad = bad + 1;
+                                body += "error-icon.png";
+                            }
+                            else {
+                                body += "warning-icon.jpg";
+                                warning = warning + 1;
+                            }
+
+                            body += "' alt='icon' width='25' height='25'/></td>";
+
+                            body +=  "<td nowrap> " + data[key].httpStatusCodeText + "(" + data[key].httpStatusCode + ") </td>" +
+                                "<td ><a href='" + data[key].uriText + "'>" + data[key].uriText + " </a> </td>" +
+                                "</tr>";
+
+                        });
+
+
+                        thImage = 'ok-icon.png';
+                        if (bad > 0) {
+                            thImage = 'error-icon.png';
+                        }
+                        else if (warning > 0) {
+                            thImage = 'warning-icon.jpg';
+                        }
+
+                        $("#checking_" + ConvertUriToValidId(uri) ).remove();
+
+
+                        $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_img_' + ConvertUriToValidId(uri));
+                        $(" <i>Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</i>").appendTo('#card_head_' + ConvertUriToValidId(uri));
+
+
+                        $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
+
+
+                        if (@(Model?.RepoUrlsAndDefaultBranch.Count ?? 0) != 1) {
+                            $('#collapse_' + ConvertUriToValidId(uri)).collapse();
+                        }
+
+                    },
+                    error: function () {
+                        document.getElementById('lb' + ConvertUriToValidId(uri)).innerHTML = 'Error checking  Repo: ';
+                    }
+                });
+            }
+
+
+
+           function ConvertUriToValidId(uri) {
+                    return uri.replace(/[^A-Za-z0-9]/gi, '');
+            }
+
+
+
+
+                $(document).ready(function(){
+            // Add minus icon for collapse element which is open by default
+            $(".collapse.show").each(function(){
+                $(this).prev(".card-header").find(".fa").addClass("fa-minus").removeClass("fa-plus");
+            });
+
+            // Toggle plus minus icon on show hide of collapse element
+            $(".collapse").on('show.bs.collapse', function(){
+                $(this).prev(".card-header").find(".fa").removeClass("fa-plus").addClass("fa-minus");
+            }).on('hide.bs.collapse', function(){
+                $(this).prev(".card-header").find(".fa").removeClass("fa-minus").addClass("fa-plus");
+            });
+        });
+
+
+    </script>
+
+
+
+    @if (Model != null)
+    {
+        @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
+        {
+            <script>
+                CheckRepo('@repoUrlAndDefaultBranch.RepoUri', '@repoUrlAndDefaultBranch.Branch');
+            </script>
+        }
+    }
+
+
+}
