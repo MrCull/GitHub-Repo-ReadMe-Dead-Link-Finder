@@ -11,43 +11,108 @@
         gtag('config', 'G-Y033WBQL5S');
     </script>
 
-
+    <!-- Basic Meta Tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Online tool for searching through GitHub readme files and finding bad links." />
-    <title>@ViewData["Title"] - GitHub "readme" bad link checker</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "Instantly check for broken, dead, and invalid links in GitHub repository README files. Free tool to scan and validate all links across your repos.")" />
+    <meta name="keywords" content="github, readme, broken links, dead links, link checker, github tools, repository checker, markdown links, link validator, github readme checker" />
+    <meta name="author" content="GitHub README Checker" />
+    <meta name="copyright" content="GitHub README Checker" />
+    <meta name="theme-color" content="#24292f" />
+    
+    <!-- Page Title -->
+    <title>@(ViewData["Title"] ?? "GitHub README Link Checker") | GitHub README Checker</title>
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://githubreadmechecker.com@(Context.Request.Path)" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://maxcdn.bootstrapcdn.com" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "GitHub README Link Checker")" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Instantly check for broken, dead, and invalid links in GitHub repository README files. Free tool to scan and validate all links across your repos.")" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://githubreadmechecker.com@(Context.Request.Path)" />
+    <meta property="og:site_name" content="GitHub README Checker" />
+    <meta property="og:image" content="https://githubreadmechecker.com/images/og-image.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "GitHub README Link Checker")" />
+    <meta name="twitter:description" content="@(ViewData["MetaDescription"] ?? "Instantly check for broken, dead, and invalid links in GitHub repository README files. Free tool to scan and validate all links across your repos.")" />
+    <meta name="twitter:image" content="https://githubreadmechecker.com/images/og-image.png" />
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "WebApplication",
+        "name": "GitHub README Link Checker",
+        "description": "Free tool to check for broken, dead, and invalid links in GitHub repository README files",
+        "url": "https://githubreadmechecker.com",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@@type": "Organization",
+            "name": "GitHub README Checker",
+            "url": "https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder"
+        },
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "softwareHelp": {
+            "@@type": "CreativeWork",
+            "url": "https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder"
+        }
+    }
+    </script>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">GitHub "readme" bad link checker</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container-fluid">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <header class="gh-global-header">
+        <div class="gh-header-inner gh-header-compact">
+            <a class="gh-logo" asp-area="" asp-controller="Home" asp-action="Index" aria-label="GitHub README Link Checker">
+                <span class="gh-logo-mark" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.533 5.47 7.59.4.075.547-.173.547-.385 0-.19-.007-.693-.01-1.36-2.226.483-2.695-1.073-2.695-1.073-.364-.924-.89-1.17-.89-1.17-.727-.497.055-.487.055-.487.803.056 1.226.825 1.226.825.715 1.225 1.874.87 2.33.665.072-.518.28-.87.508-1.07-1.777-.202-3.644-.888-3.644-3.953 0-.873.312-1.587.823-2.147-.083-.202-.357-1.017.078-2.12 0 0 .67-.215 2.2.82a7.67 7.67 0 0 1 2-.27c.68.003 1.37.092 2 .27 1.53-1.035 2.2-.82 2.2-.82.435 1.103.162 1.918.08 2.12.513.56.822 1.274.822 2.147 0 3.073-1.87 3.748-3.65 3.947.287.246.543.734.543 1.48 0 1.068-.01 1.93-.01 2.193 0 .213.146.463.55.384A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+                    </svg>
+                </span>
+                <span class="gh-logo-text">README Link Checker</span>
+            </a>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2021 - DeadLinkFinderWeb
+                <form class="gh-header-search" id="headerSearchForm" role="search">
+                    <input type="search" id="headerSearchInput" placeholder="Search for a GitHub user or organization..." aria-label="Search GitHub user or org" />
+            </form>
+        </div>
+    </header>
+    <main class="gh-main" role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="gh-footer">
+        <div class="gh-footer-inner">
+            <div class="gh-footer-meta">
+                <span>© @DateTime.Now.Year</span>
+                <span class="gh-footer-title">GitHub README Link Checker</span>
+            </div>
+            <div class="gh-footer-links">
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues" target="_blank" rel="noopener">Report issue</a>
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions" target="_blank" rel="noopener">Discuss</a>
+                <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" target="_blank" rel="noopener">Repository</a>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
