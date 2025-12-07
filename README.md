@@ -1,45 +1,130 @@
 # GitHub Repo README.md Dead Link Finder
 
-## Why was this Repo created...
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Many GitHub Repos have “README” files that contain bad links. 
+> Automatically discover and report broken links in GitHub repository README files
 
-The owners and contributors to these Repos are often unaware and this is not the easiest thing to check.
+## Overview
 
-This Repo contains a set of applications that will search for Repos that have README files which contain bad links.
+Many GitHub repositories contain README files with broken or outdated links. Repository owners and contributors are often unaware of these issues, as manually checking links across multiple repositories can be tedious and time-consuming.
 
-If you have reached this Repo page because a bad link has been found in one of your repo's README files then please consider giving this Repo a Star or suggesting an improvement by logging an Issue.
+This project provides both a **web interface** and a **console application** to automatically scan GitHub repositories and identify broken links in their README files.
+
+**📢 Found this tool through an issue we created?** Please consider giving this repo a ⭐ or suggest improvements by opening an issue!
+
+## Features
+
+- 🔍 **Automated Scanning** - Searches GitHub for active repositories with README files
+- 🌐 **Web Interface** - User-friendly web UI for on-demand repository checks
+- 💻 **Console Application** - Batch processing tool for systematic scanning
+- ⭐ **Smart Filtering** - Focuses on repositories with 100+ stars and recent commits
+- 🔗 **Link Validation** - Comprehensive checking of all links in README files
+- 📊 **Detailed Reports** - Saves findings with actionable information
+- 🔐 **GitHub API Integration** - Optional Personal Access Token support for higher rate limits
 
 ## Web UI
 
-Access the Web UI via this link: https://GitHubReadMeChecker.com
-
-![Image](deadlink-finder-example2.gif)
-
-Want to include Forkes Repos? Then add the "&IncludeForks=true" into the url
+Access the web interface at: **[https://GitHubReadMeChecker.com](https://GitHubReadMeChecker.com)**
 
 ## Console UI
 
-This tool can also run as a batch console application (it finds a Repo with a bad link in it's README.md after about 30 seconds)...
+The console application runs as a batch process and can find repositories with broken links in approximately 30 seconds.
 
-![Image](deadlink-finder-example.gif)
+![Console Demo](deadlink-finder-example.gif)
 
-Currently this program searches all of GitHub for Repos with over 100 Stars that have had a commit within the last hour.
+### How It Works
 
-A (user changeable) default of 25 repos are checked per run of the program.
+1. **Search Criteria**: Scans GitHub repositories with:
+   - 100+ stars
+   - Commits within the last hour
+   
+2. **Batch Processing**: Checks 25 repositories per run (configurable)
 
-Once a bad link is found the relevant information saved in a file.
+3. **Results**: Broken link information is saved to a file for manual review and reporting
 
-Then this information can be manually passed on, likely by creating an Issue in the affected Repo (which is probably why you might have ended up here reading this).
+## Installation
 
-The GitHub API has a Rate Limit to throttle the amount of request from a certain source: https://developer.github.com/v3/rate_limit/
+### Prerequisites
 
-To increase this limit when using this program you can enter your Personal Access Token: https://github.com/settings/tokens
+- .NET SDK (version specified in project files)
+- GitHub account (optional, for Personal Access Token)
 
-However this is optional and the program will still work without this although this limit may get hit.
+### Setup
 
-## GitHub actions
-There are a number of other projects on GitHub which will check for broken links via GitHub actions:
-https://github.com/marketplace/actions/markdown-link-check
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/GitHub-Repo-ReadMe-Dead-Link-Finder.git
 
-https://github.com/marketplace/actions/link-checker
+# Navigate to the project directory
+cd GitHub-Repo-ReadMe-Dead-Link-Finder
+
+# Build the project
+dotnet build
+
+# Run the console application
+dotnet run
+```
+
+## Configuration
+
+### GitHub API Rate Limits
+
+The GitHub API has rate limits to prevent abuse. Learn more: [GitHub Rate Limiting](https://developer.github.com/v3/rate_limit/)
+
+**To increase your rate limit:**
+
+1. Generate a Personal Access Token: [GitHub Settings → Tokens](https://github.com/settings/tokens)
+2. Enter the token when prompted by the application
+
+⚠️ **Note**: The Personal Access Token is optional. The program will work without it, but you may hit rate limits sooner.
+
+## Usage
+
+### Web Interface
+
+1. Visit [GitHubReadMeChecker.com](https://GitHubReadMeChecker.com)
+2. Enter a repository URL or username
+3. View the results and broken links found
+
+### Console Application
+
+```bash
+dotnet run
+```
+
+Follow the on-screen prompts to:
+- Enter your GitHub Personal Access Token (optional)
+- Configure the number of repositories to check
+- View real-time scanning results
+
+## Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. 🐛 **Report Bugs** - Open an issue describing the problem
+2. 💡 **Suggest Features** - Share your ideas for improvements
+3. 🔧 **Submit Pull Requests** - Help fix bugs or add features
+4. ⭐ **Star the Repo** - Show your support!
+
+## Related Projects
+
+Other excellent tools for checking broken links via GitHub Actions:
+
+- [Markdown Link Check](https://github.com/marketplace/actions/markdown-link-check)
+- [Link Checker](https://github.com/marketplace/actions/link-checker)
+
+## License
+
+This project is open source and available under the MIT License.
+
+## Support
+
+If you encounter any issues or have questions:
+
+1. Check existing [Issues](https://github.com/yourusername/GitHub-Repo-ReadMe-Dead-Link-Finder/issues)
+2. Open a new issue with detailed information
+3. Provide relevant error messages and screenshots
+
+---
+
+**Made with ❤️ to help keep GitHub documentation clean and maintainable**
