@@ -1,210 +1,738 @@
-﻿@using System.Text.RegularExpressions
-@model DeadLinkFinderWeb.Models.RepoCheckerModel
+﻿@model DeadLinkFinderWeb.Models.RepoCheckerModel
 
 @{
-    ViewData["Title"] = "Search Repos' readme...";
+    ViewData["Title"] = "Free GitHub README Link Checker | Find Broken Links";
+    ViewData["MetaDescription"] = "Instantly check for broken, dead, and invalid links in GitHub repository README files. Free tool to scan and validate all links across your repos.";
+    ViewData["OgTitle"] = "Free GitHub README Link Checker - Find & Fix Broken Links";
 }
 
-<h4>Repo Search</h4>
-<hr />
-<div class="row">
-    <div class="col-md-3">
-        <form asp-controller="Home" asp-action="Search" method="get">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="SingleRepoUri" class="control-label"></label>
-                <input id="serchFormUri" asp-for="SingleRepoUri" class="form-control" title="e.g. https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder" />
-                <span asp-validation-for="SingleRepoUri" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="User" class="control-label"></label>
-                <input asp-for="User" class="form-control" title="e.g. google" />
-                <span asp-validation-for="User" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="NumberOfReposToSearchFor" class="control-label"></label>
-                <input id="serchFormNumberOfReposToSearchFor" asp-for="NumberOfReposToSearchFor" class="form-control" placeholder="5" title="e.g. 10" />
-                <span asp-validation-for="NumberOfReposToSearchFor" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="MinStar" class="control-label"></label>
-                <input asp-for="MinStar" class="form-control" placeholder="0" />
-                <span asp-validation-for="MinStar" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAfter" class="control-label"></label>
-                <input asp-for="UpdatedAfter" class="form-control" />
-                <span asp-validation-for="UpdatedAfter" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SearchSort" class="control-label"></label>
-                <select asp-for="SearchSort" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.RepoSearchSort)).OrderByDescending(em => em.Value)" class="form-control"></select>
-                <span asp-validation-for="SearchSort" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SortAscDsc" class="control-label"></label>
-                <select asp-for="SortAscDsc" asp-items="Html.GetEnumSelectList(typeof(RepoCheckerModel.SortDirection)).OrderByDescending(em => em.Value)" class="form-control"></select>
-                <span asp-validation-for="SortAscDsc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input id="serchFormButton" type="submit" value="Search for Repo(s)" class="btn btn-primary" />
-            </div>
-            <div class="form-group">
-                <a asp-action="Index">Reset Search</a>
-                <br />
-                <br />
-                Found an <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/issues">Issue</a> with this tool, or would like to <a href="https://github.com/MrCull/GitHub-Repo-ReadMe-Dead-Link-Finder/discussions">Discuss</a> something?
-            </div>
-        </form>
-    </div>
-
-
-    @if (Model != null)
-{
-    <div class="col-sm-9">
-            <div class="container">
-                <div id="accordion">
-                    @foreach (var uri in Model.RepoUrlsAndDefaultBranch.Select(u => u.RepoUri))
-                    {
-                        <div class="card">
-                            <div class="card-header" id="card_head_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
-                                <a data-toggle="collapse" href="#collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"><i class='fa fa-plus'></i></a>
-                                <b id="card_img_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")"></b>
-                                <a data-toggle="collapse" href="@uri">@uri</a>
-                            </div>
-                            <div id='collapse_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")' class="collapse show" data-parent="#accordion">
-                                <div class="card-body" id="card_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")">
-                                    <img id="checking_@Regex.Replace(uri.ToString(), @"[^A-Za-z0-9]+", "")" src='../images/checking-icon.gif' alt='icon' width='25' height='25' />
-                                </div>
-                            </div>
-                        </div>
-
-                    }
-
-                    <a asp-action="Index">Reset Search</a>
+<div class="gh-page">
+    <div class="gh-page-container">
+        <section class="gh-profile-header">
+            <div class="gh-profile-left">
+                <div class="gh-avatar">
+                    <img id="profileAvatar" src="https://avatars.githubusercontent.com/u/0?v=4" alt="Profile avatar" />
+                </div>
+                <div class="gh-profile-text">
+                    <div class="gh-real-name" id="profileRealName">GitHub User</div>
+                    <div class="gh-username" id="profileUsername">&#64;github</div>
                 </div>
             </div>
-        </div>
-}
+        </section>
 
+        <!-- Search Section -->
+        <section class="gh-search-card" id="searchSection">
+            <div class="gh-search-header">
+                <div>
+                    <h1 class="main-title">GitHub README Link Checker</h1>
+                    <p class="subtitle">Check for broken links in your GitHub repository README files</p>
+                </div>
+            </div>
+            <form id="searchForm" class="gh-search-form">
+                <div class="input-group">
+                    <input type="text"
+                           id="userOrOrgInput"
+                           class="form-control gh-input"
+                           placeholder="GitHub username or org"
+                           aria-label="GitHub username or org"
+                           required />
+                    <button type="submit" class="gh-btn gh-btn-primary" id="searchBtn">
+                        <span class="btn-text">Check repos</span>
+                        <span class="btn-spinner" style="display: none;">
+                            <i class="fa fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
+            </form>
+        </section>
+
+        <!-- Loading State -->
+        <section class="gh-loading" id="loadingSection" style="display: none;">
+            <div class="loading-content">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Fetching repositories...</p>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="gh-results" id="resultsSection" style="display: none;">
+            <div class="repo-header">
+                <div class="repo-search-row">
+                    <input type="search" id="repoFilterInput" class="repo-search-input" placeholder="Find a repository..." aria-label="Find a repository" oninput="handleRepoFilterChange()" />
+                </div>
+                <div class="repo-toolbar-row">
+                    <span class="repo-count" id="repoCountLabel">0 repositories</span>
+                    <div class="repo-toolbar-right">
+                        <div class="repo-sort">
+                            <button class="repo-sort-trigger" id="sortTrigger" onclick="toggleSortMenu()">
+                                <span id="sortLabel">Last pushed</span>
+                                <span class="caret">▾</span>
+                            </button>
+                            <div class="repo-sort-menu" id="sortMenu" style="display: none;">
+                                <button data-key="pushed" class="sort-menu-btn" onclick="selectSort('pushed')">
+                                    <span class="menu-icon">↩</span>
+                                    <span class="menu-label">Last pushed</span>
+                                    <span class="tick" id="tick-pushed">✓</span>
+                                </button>
+                                <button data-key="name" class="sort-menu-btn" onclick="selectSort('name')">
+                                    <span class="menu-icon">Aa</span>
+                                    <span class="menu-label">Name</span>
+                                    <span class="tick" id="tick-name"></span>
+                                </button>
+                                <button data-key="stars" class="sort-menu-btn" onclick="selectSort('stars')">
+                                    <span class="menu-icon">★</span>
+                                    <span class="menu-label">Stars</span>
+                                    <span class="tick" id="tick-stars"></span>
+                                </button>
+                                <div class="menu-separator"></div>
+                                <button data-dir="asc" class="sort-menu-btn" onclick="selectDir('asc')">
+                                    <span class="menu-icon">↑</span>
+                                    <span class="menu-label">Ascending</span>
+                                    <span class="tick" id="tick-asc"></span>
+                                </button>
+                                <button data-dir="desc" class="sort-menu-btn" onclick="selectDir('desc')">
+                                    <span class="menu-icon">↓</span>
+                                    <span class="menu-label">Descending</span>
+                                    <span class="tick" id="tick-desc">✓</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="repo-list" id="reposContainer">
+                <!-- Repos will be dynamically added here -->
+            </div>
+
+            <div class="gh-load-more" aria-label="Pagination">
+                <span class="gh-load-more-info" id="loadMoreInfo">0 shown · 0 more</span>
+                <button class="gh-btn gh-btn-ghost" type="button" id="loadMoreBtn" onclick="loadMoreRepos()">Load more</button>
+            </div>
+        </section>
+    </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
     <script>
-            function CheckRepo(uri, branch) {
+        let allRepos = [];
+        let checkedRepos = new Set();
+        let currentUserOrOrg = '';
+        const LAST_SEARCH_KEY = 'dlf:lastSearch';
+        const DEFAULT_AVATAR = 'https://avatars.githubusercontent.com/u/0?v=4';
+        let filterTerm = '';
+        let visibleCount = 5;
+        let sortBy = 'pushed';
+        let sortDir = 'desc';
+        let selectedTabs = {}; // Track selected tab for each repo
+
+        // GA helper
+        function isGaReady() { return typeof gtag === 'function'; }
+        function trackEvent(name, params) {
+            if (!isGaReady()) return;
+            gtag('event', name, params || {});
+        }
+
+        function saveLastSearch(value) {
+            try {
+                if (value) {
+                    localStorage.setItem(LAST_SEARCH_KEY, value);
+                }
+            } catch (e) {
+                console.warn('Unable to save last search', e);
+            }
+        }
+
+        function getLastSearch() {
+            try {
+                return localStorage.getItem(LAST_SEARCH_KEY);
+            } catch (e) {
+                console.warn('Unable to read last search', e);
+                return null;
+            }
+        }
+
+        function clearLastSearch() {
+            try {
+                localStorage.removeItem(LAST_SEARCH_KEY);
+            } catch (e) {
+                console.warn('Unable to clear last search', e);
+            }
+        }
+
+        function updateProfileHeader(userOrOrg, repoCount) {
+            const handle = userOrOrg || 'github';
+            const usernameText = String.fromCharCode(64) + handle;
+            $('#profileUsername').text(usernameText);
+            $('#profileRealName').text(userOrOrg || 'GitHub User');
+            $('#profileAvatar')
+                .attr('src', `https://avatars.githubusercontent.com/${handle}`)
+                .attr('alt', `${handle} avatar`)
+                .on('error', function() {
+                    $(this).attr('src', DEFAULT_AVATAR);
+                });
+        }
+
+        function startUserSearch(userOrOrg) {
+            if (!userOrOrg) {
+                showError('Please enter a GitHub username or organization');
+                return;
+            }
+
+            currentUserOrOrg = userOrOrg;
+            clearLastSearch();
+            updateProfileHeader(userOrOrg, 0);
+            $('#userOrOrgInput').val(userOrOrg);
+            $('#searchSection').hide();
+            $('#loadingSection').show();
+            $('#errorMessage').hide();
+            $('#searchBtn .btn-text').hide();
+            $('#searchBtn .btn-spinner').show();
+            $('#searchBtn').prop('disabled', true);
+
+            trackEvent('repo_search', {
+                search_term: userOrOrg,
+                source: 'form'
+            });
+
+            fetchAndCheckRepos(userOrOrg);
+        }
+
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            const userOrOrg = $('#userOrOrgInput').val().trim();
+            startUserSearch(userOrOrg);
+        });
+
+        $('#headerSearchForm').on('submit', function(e) {
+            e.preventDefault();
+            const userOrOrg = $('#headerSearchInput').val().trim();
+            startUserSearch(userOrOrg);
+        });
+
+        function fetchAndCheckRepos(userOrOrg) {
             $.ajax({
                 type: 'GET',
-                url: '@Url.Action("CheckRepo")',
-                data: { 'projectBaseUrl': uri, 'branch': branch },
-                dataType: "json",
-                cache: false,
-                success: function (data) {
-                    var ok = 0;
-                    var bad = 0;
-                    var warning = 0;
-                    var body = "";
-                    $.each(data, function (key) {
-
-
-                        body += " <tr class='table-slim'>";
-                        body += "<td nowrap ><img src='../images/";
-
-                        if (data[key].httpStatusCode == 200) {
-                            body += "ok-icon.png";
-                            ok = ok + 1;
-                        }
-                        else if (data[key].httpStatusCode == 404) {
-                            bad = bad + 1;
-                            body += "error-icon.png";
-                        }
-                        else {
-                            body += "warning-icon.jpg";
-                            warning = warning + 1;
-                        }
-
-                        body += "' alt='icon' width='25' height='25'/></td>";
-
-                        body +=  "<td nowrap> " + data[key].httpStatusCodeText + "(" + data[key].httpStatusCode + ") </td>" +
-                            "<td ><a href='" + data[key].uriText + "'>" + data[key].uriText + " </a> </td>" +
-                            "</tr>";
-
-                    });
-
-
-                    thImage = 'ok-icon.png';
-                    if (bad > 0) {
-                        thImage = 'error-icon.png';
-                    }
-                    else if (warning > 0) {
-                        thImage = 'warning-icon.jpg';
+                url: '@Url.Action("GetUserRepos", "Home")',
+                data: { userOrOrg: userOrOrg },
+                dataType: 'json',
+                success: function(repos) {
+                    if (repos.error) {
+                        showError(repos.error);
+                        resetToSearch();
+                        return;
                     }
 
-                    $("#checking_" + ConvertUriToValidId(uri) ).remove();
+                    allRepos = repos;
+                    checkedRepos.clear();
+                    saveLastSearch(userOrOrg);
+                    updateProfileHeader(userOrOrg, repos.length);
 
-
-                    $("<img src='../images/" + thImage + "' alt='icon' width='25' height='25'/>").prependTo('#card_img_' + ConvertUriToValidId(uri));
-                    $(" <i>Bad[" + bad + "] Warning[" + warning + "] Ok[" + ok + "]</i>").appendTo('#card_head_' + ConvertUriToValidId(uri));
-
-
-                    $("<div class='table-responsive'><table class='table'>" + body + " </table></div>").appendTo('#card_' + ConvertUriToValidId(uri));
-
-
-                    if (@(Model?.RepoUrlsAndDefaultBranch.Count ?? 0) != 1) {
-                        $('#collapse_' + ConvertUriToValidId(uri)).collapse();
-                    }
-
+                    filterTerm = '';
+                    visibleCount = 5;
+                    sortBy = 'pushed';
+                    sortDir = 'desc';
+                    $('#repoFilterInput').val('');
+                    updateSortUI();
+                    $('#loadingSection').hide();
+                    $('#resultsSection').show();
+                    renderRepoList();
+                    resetToSearch();
                 },
-                error: function () {
-                    document.getElementById('lb' + ConvertUriToValidId(uri)).innerHTML = 'Error checking  Repo: ';
+                error: function() {
+                    showError('Failed to fetch repositories. Please check the username/organization name.');
+                    resetToSearch();
                 }
             });
         }
 
+        function getFilteredRepos() {
+            const base = [...allRepos];
+            let filtered = base;
+            if (filterTerm) {
+                const escaped = filterTerm.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*');
+                const regex = new RegExp(escaped, 'i');
+                filtered = base.filter(repo => regex.test(repo.name));
+            }
 
+            filtered.sort(function(a, b) {
+                if (sortBy === 'name') {
+                    const nameA = (a.name || '').toLowerCase();
+                    const nameB = (b.name || '').toLowerCase();
+                    return sortDir === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                }
+                if (sortBy === 'stars') {
+                    const sa = a.stars || 0;
+                    const sb = b.stars || 0;
+                    return sortDir === 'asc' ? sa - sb : sb - sa;
+                }
+                // pushed/updated
+                const da = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+                const db = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+                return sortDir === 'asc' ? da - db : db - da;
+            });
 
-       function ConvertUriToValidId(uri) {
-                return uri.replace(/[^A-Za-z0-9]/gi, '');
+            return filtered;
+        }
+
+        function renderRepoList() {
+            const container = $('#reposContainer');
+            container.empty();
+            const filtered = getFilteredRepos();
+            const slice = filtered.slice(0, visibleCount);
+
+            if (slice.length === 0) {
+                container.append('<div class="gh-empty-state">No repositories found.</div>');
+            } else {
+                slice.forEach(function(repo) {
+                    addRepoCard(repo);
+                    if (!checkedRepos.has(repo.url)) {
+                        checkRepo(repo.url, repo.branch, repo.name);
+                        checkedRepos.add(repo.url);
+                    }
+                });
+            }
+
+            const total = filtered.length;
+            const showing = Math.min(visibleCount, total);
+            const remaining = Math.max(total - showing, 0);
+            $('#repoCountLabel').text(`${total} repositories`);
+            $('#loadMoreInfo').text(`${showing} shown · ${remaining} more`);
+
+            if (remaining > 0) {
+                $('#loadMoreBtn').show();
+            } else {
+                $('#loadMoreBtn').hide();
+            }
+        }
+
+        function handleRepoFilterChange() {
+            filterTerm = $('#repoFilterInput').val().trim();
+            visibleCount = 5;
+            renderRepoList();
+        }
+
+        function toggleSortMenu() {
+            const menu = $('#sortMenu');
+            menu.toggle();
+        }
+
+        function selectSort(key) {
+            sortBy = key;
+            visibleCount = 5;
+            updateSortUI();
+            renderRepoList();
+            $('#sortMenu').hide();
+        }
+
+        function selectDir(dir) {
+            sortDir = dir;
+            visibleCount = 5;
+            updateSortUI();
+            renderRepoList();
+            $('#sortMenu').hide();
+        }
+
+        function updateSortUI() {
+            // Update sort label
+            const labels = {pushed: 'Last pushed', name: 'Name', stars: 'Stars'};
+            $('#sortLabel').text(labels[sortBy] || 'Last pushed');
+
+            // Update checkmarks
+            $('.tick').text('');
+            $('#tick-' + sortBy).text('✓');
+            $('#tick-' + sortDir).text('✓');
+
+            // Update active states
+            $('.sort-menu-btn').removeClass('is-active');
+            $('[data-key="' + sortBy + '"]').addClass('is-active');
+            $('[data-dir="' + sortDir + '"]').addClass('is-active');
+        }
+
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.repo-sort').length) {
+                $('#sortMenu').hide();
+            }
+        });
+
+        function loadMoreRepos() {
+            const filtered = getFilteredRepos();
+            const total = filtered.length;
+            const before = Math.min(visibleCount, total);
+            visibleCount += 5;
+            const after = Math.min(visibleCount, total);
+            const added = Math.max(after - before, 0);
+
+            trackEvent('load_more', {
+                added,
+                showing: after,
+                total
+            });
+
+            renderRepoList();
+        }
+
+        function addRepoCard(repo) {
+            const repoId = convertUriToValidId(repo.url);
+            const updatedAtText = repo.updatedAt ? `Updated ${formatRelativeTime(new Date(repo.updatedAt))}` : '';
+            const languageName = repo.language || '';
+            const languageColor = getLanguageColor(languageName);
+            const stars = repo.stars ?? 0;
+            const forks = repo.forks ?? 0;
+            const license = repo.license || 'Other';
+            const description = repo.description || '';
+            const topics = repo.topics || [];
+
+            const existingLinks = window['repoLinks_' + repoId];
+            const hasExisting = !!existingLinks;
+            const brokenCount = hasExisting ? (existingLinks.broken?.length || 0) : null;
+            const warningCount = hasExisting ? (existingLinks.warning?.length || 0) : null;
+            const okCount = hasExisting ? (existingLinks.ok?.length || 0) : null;
+
+            // Preserve previously selected tab if present
+            if (!selectedTabs[repoId]) {
+                selectedTabs[repoId] = 'broken';
+            }
+            const currentTab = selectedTabs[repoId];
+            const cardClass = hasExisting && brokenCount > 0 ? 'repo-card has-broken' : 'repo-card';
+
+            const cardHtml = `
+                <div class="${cardClass}" id="repo-card-${repoId}" data-repo-url="${repo.url}">
+                    <div class="repo-main">
+                        <div class="repo-header-row">
+                            <a class="repo-title" href="${repo.url}" target="_blank" rel="noopener">${repo.name}</a>
+                            <span class="repo-visibility">Public</span>
+                        </div>
+                        ${description ? `<p class="repo-description">${description}</p>` : ''}
+                        ${topics.length > 0 ? `<div class="repo-topics">${topics.slice(0, 8).map(t => `<a href="#" class="repo-topic">${t}</a>`).join('')}</div>` : ''}
+                        <div class="repo-meta">
+                            ${languageName ? `<span class="repo-language">
+                                <span class="language-dot" style="background-color:${languageColor};"></span>
+                                ${languageName}
+                            </span>` : ''}
+                            <span class="repo-license">
+                                <svg class="icon icon-scales" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z"></path>
+                                </svg>
+                                ${license}
+                            </span>
+                            <span class="repo-metric">
+                                <svg class="icon icon-star" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path>
+                                </svg>
+                                ${stars}
+                            </span>
+                            <span class="repo-metric">
+                                <svg class="icon icon-fork" height="14" width="14" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill="currentColor" d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path>
+                                </svg>
+                                ${forks}
+                            </span>
+                        </div>
+                        <div class="repo-updated">
+                            ${updatedAtText}
+                            <span class="repo-checking-badge" id="checking-${repoId}" ${hasExisting ? 'style="display:none;"' : ''}>
+                                <span class="mini-spinner"></span> Checking links...
+                            </span>
+                        </div>
+                        <div class="repo-link-status" id="link-counts-${repoId}">
+                            <div class="repo-tabs" id="tabs-${repoId}">
+                                <button class="repo-tab ${currentTab === 'broken' ? 'active' : ''}" data-repo-id="${repoId}" data-status="broken">
+                                    Broken links (${hasExisting ? brokenCount : '<span class="mini-spinner"></span>'})
+                                </button>
+                                <button class="repo-tab ${currentTab === 'warning' ? 'active' : ''}" data-repo-id="${repoId}" data-status="warning">
+                                    Links with Warnings (${hasExisting ? warningCount : '<span class="mini-spinner"></span>'})
+                                </button>
+                                <button class="repo-tab ${currentTab === 'ok' ? 'active' : ''}" data-repo-id="${repoId}" data-status="ok">
+                                    Working links (${hasExisting ? okCount : '<span class="mini-spinner"></span>'})
+                                </button>
+                            </div>
+                            <div class="repo-tab-content" id="tab-content-${repoId}">
+                                ${hasExisting ? buildTabContent(repoId, currentTab) : '<div class="tab-empty-state">Checking links...</div>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#reposContainer').append(cardHtml);
+        }
+
+        function checkRepo(uri, branch, repoName) {
+            const repoId = convertUriToValidId(uri);
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CheckRepo", "Home")',
+                data: { projectBaseUrl: uri, branch: branch },
+                dataType: 'json',
+                cache: false,
+                success: function(data) {
+                    updateRepoStatus(repoId, data, uri, repoName);
+                },
+                error: function() {
+                    $('#repo-status-' + repoId).html('<div class="status-error" title="Error checking repo" aria-label="Error checking repo" role="status"><i class="fa fa-exclamation-triangle"></i></div>');
+                }
+            });
+        }
+
+        function updateRepoStatus(repoId, data, uri, repoName) {
+            let ok = 0, bad = 0, warning = 0;
+            const badLinks = [];
+            const warningLinks = [];
+            const okLinks = [];
+
+            $.each(data, function(key) {
+                const statusCode = data[key].httpStatusCode;
+                const link = {
+                    uri: data[key].uriText,
+                    statusCode: statusCode,
+                    statusText: data[key].httpStatusCodeText
+                };
+
+                if (statusCode == 200) {
+                    ok++;
+                    okLinks.push(link);
+                } else if (statusCode == 404) {
+                    bad++;
+                    badLinks.push(link);
+                } else {
+                    warning++;
+                    warningLinks.push(link);
+                }
+            });
+
+            // Store link data for this repo
+            window['repoLinks_' + repoId] = {
+                ok: okLinks,
+                warning: warningLinks,
+                broken: badLinks
+            };
+
+            // Update tab labels with real counts
+            $(`#tabs-${repoId} .repo-tab[data-status="broken"]`).html(`Broken links (${bad})`);
+            $(`#tabs-${repoId} .repo-tab[data-status="warning"]`).html(`Links with Warnings (${warning})`);
+            $(`#tabs-${repoId} .repo-tab[data-status="ok"]`).html(`Working links (${ok})`);
+
+            // Highlight card if broken links exist
+            const $card = $(`#repo-card-${repoId}`);
+            if (bad > 0) {
+                $card.addClass('has-broken');
+            } else {
+                $card.removeClass('has-broken');
+            }
+
+            // Hide checking indicator at repo level
+            $(`#checking-${repoId}`).hide();
+
+            // Refresh content for the currently selected tab
+            const currentTab = selectedTabs[repoId] || 'broken';
+            $('#tab-content-' + repoId).html(buildTabContent(repoId, currentTab));
+            $('#link-details-' + repoId).hide();
+
+            // GA event for completion
+            trackEvent('link_check_complete', {
+                repo_id: repoId,
+                repo_name: repoName,
+                broken: bad,
+                warning: warning,
+                ok: ok
+            });
+        }
+
+        function buildTabContent(repoId, status) {
+            const links = window['repoLinks_' + repoId];
+            if (!links || !links[status]) return '<div class="tab-empty-state">No links checked yet.</div>';
+
+            const statusLinks = links[status];
+
+            // If no links for this status, show empty state
+            if (statusLinks.length === 0) {
+                let emptyMessage = 'No links in this category.';
+                let emptyClass = 'tab-empty-state';
+                if (status === 'broken') emptyMessage = 'No broken links found! 🎉';
+                else if (status === 'warning') emptyMessage = 'No warnings found.';
+                else if (status === 'ok') emptyMessage = 'No working links yet.';
+
+                if (status === 'broken') emptyClass += ' state-good';
+                else if (status === 'warning') emptyClass += ' state-warning';
+
+                return `<div class="${emptyClass}">${emptyMessage}</div>`;
+            }
+
+            let contentHtml = '<div class="link-list">';
+
+            statusLinks.forEach(function(link) {
+                let itemClass = 'link-item';
+                if (status === 'broken') itemClass += ' error-link';
+                else if (status === 'warning') itemClass += ' warning-link';
+                else if (status === 'ok') itemClass += ' ok-link';
+
+                contentHtml += `<div class="${itemClass}">
+                    <span class="link-status">${link.statusText} (${link.statusCode})</span>
+                    <a href="${link.uri}" target="_blank" class="link-url">${link.uri}</a>
+                </div>`;
+            });
+
+            contentHtml += '</div>';
+            return contentHtml;
+        }
+
+        function switchRepoTab(repoId, status) {
+            selectedTabs[repoId] = status;
+
+            // Update active tab
+            $('#tabs-' + repoId + ' .repo-tab').removeClass('active');
+            $('#tabs-' + repoId + ' .repo-tab[data-status="' + status + '"]').addClass('active');
+
+            // Update content
+            $('#tab-content-' + repoId).html(buildTabContent(repoId, status));
+
+            trackEvent('link_tab_selected', {
+                repo_id: repoId,
+                status: status
+            });
+        }
+
+        // Event delegation for tabs (keeps working after dynamic updates)
+        $(document).on('click', '.repo-tab', function(e) {
+            e.preventDefault();
+            const repoId = $(this).data('repo-id');
+            const status = $(this).data('status');
+            if (!repoId || !status) return;
+            switchRepoTab(repoId, status);
+        });
+
+        function removeRepoCard(repoUrl) {
+            const repoId = convertUriToValidId(repoUrl);
+            const $card = $('#repo-card-' + repoId);
+
+            if ($card.length) {
+                $card.fadeOut(200, function() {
+                    $(this).remove();
+                });
+            }
+            checkedRepos.delete(repoUrl);
         }
 
 
+        function formatRelativeTime(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            const diffMonths = Math.floor(diffDays / 30);
+            const diffYears = Math.floor(diffDays / 365);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return diffMins + ' min ago';
+            if (diffHours < 24) return diffHours + ' hour' + (diffHours > 1 ? 's' : '') + ' ago';
+            if (diffDays < 30) return diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+            if (diffMonths < 12) return diffMonths + ' month' + (diffMonths > 1 ? 's' : '') + ' ago';
+            return diffYears + ' year' + (diffYears > 1 ? 's' : '') + ' ago';
+        }
+
+        function formatAbsoluteDate(date) {
+            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getLanguageColor(language) {
+            const colors = {
+                'C#': '#178600',
+                'TypeScript': '#3178c6',
+                'JavaScript': '#f1e05a',
+                'HTML': '#e34c26',
+                'Python': '#3572A5',
+                'Go': '#00ADD8',
+                'Vue': '#41b883',
+                'Code': '#6e7781'
+            };
+            return colors[language] || '#6e7781';
+        }
+
+        function getStarSvg() {
+            return '<svg aria-hidden="true" height="16" width="16" viewBox="0 0 16 16" class="gh-icon"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.28l-3.046 2.97.719 4.19a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.19L.818 6.375a.75.75 0 0 1 .416-1.28l4.21-.612L7.327.668A.75.75 0 0 1 8 .25Z"></path></svg>';
+        }
+
+        function getForkSvg() {
+            return '<svg aria-hidden="true" height="16" width="16" viewBox="0 0 16 16" class="gh-icon"><path fill="currentColor" d="M5 3.25a2.25 2.25 0 1 1-3 2.122V6.5A2.5 2.5 0 0 0 4.5 9h1.128a2.25 2.25 0 0 1 1.592.659l1.914 1.914V9.372A2.5 2.5 0 0 0 11.5 7H12V5.372a2.25 2.25 0 1 1 1.5 0V7h-.5a1 1 0 0 0-1 1v4.128a2.25 2.25 0 1 1-1.5 0V12L8.586 9.586a.75.75 0 0 0-.53-.22H6.5A3.5 3.5 0 0 1 3 5.372V5.5a2.25 2.25 0 1 1 2 0v-.128c0-.262-.027-.517-.078-.763A2.25 2.25 0 0 1 5 3.25Zm-1.5 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8 9a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm1.5-8a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>';
+        }
 
 
-            $(document).ready(function(){
-        // Add minus icon for collapse element which is open by default
-        $(".collapse.show").each(function(){
-        	$(this).prev(".card-header").find(".fa").addClass("fa-minus").removeClass("fa-plus");
+        function convertUriToValidId(uri) {
+            return uri.replace(/[^A-Za-z0-9]/gi, '');
+        }
+
+        function showError(message) {
+            $('#errorMessage').text(message).show();
+        }
+
+        function resetToSearch() {
+            $('#searchBtn .btn-text').show();
+            $('#searchBtn .btn-spinner').hide();
+            $('#searchBtn').prop('disabled', false);
+        }
+
+        function resetSearch() {
+            $('#searchSection').show();
+            $('#resultsSection').hide();
+            $('#loadingSection').hide();
+            $('#userOrOrgInput').val('');
+            $('#reposContainer').empty();
+            allRepos = [];
+            checkedRepos.clear();
+            filterTerm = '';
+            visibleCount = 5;
+            sortBy = 'pushed';
+            sortDir = 'desc';
+            $('#loadMoreBtn').hide();
+            clearLastSearch();
+            updateProfileHeader('', 0);
+        }
+
+        // Handle existing model data (backward compatibility)
+        @if (Model != null && Model.RepoUrlsAndDefaultBranch != null && Model.RepoUrlsAndDefaultBranch.Count > 0)
+        {
+                <text>
+                $(document).ready(function() {
+                    $('#searchSection').hide();
+                    $('#resultsSection').show();
+                    updateProfileHeader('github', @Model.RepoUrlsAndDefaultBranch.Count);
+                    const preloadRepos = [];
+                    @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
+                    {
+                            var repoName = repoUrlAndDefaultBranch.RepoUri.Segments.Last().TrimEnd('/');
+                            var fullName = repoUrlAndDefaultBranch.RepoUri.ToString().Replace("https://github.com/", "");
+                            <text>
+                            preloadRepos.push({
+                                url: '@repoUrlAndDefaultBranch.RepoUri',
+                                branch: '@repoUrlAndDefaultBranch.Branch',
+                                name: '@repoName',
+                                fullName: '@fullName',
+                                stars: 0
+                            });
+                            </text>
+                    }
+                    allRepos = preloadRepos;
+                    filterTerm = '';
+                    visibleCount = Math.min(5, allRepos.length || 5);
+                    renderRepoList();
+                });
+                </text>
+        }
+
+        $(document).ready(function() {
+            const lastSearch = getLastSearch();
+            if (lastSearch) {
+                $('#userOrOrgInput').val(lastSearch);
+                $('#searchForm').trigger('submit');
+            }
         });
-
-        // Toggle plus minus icon on show hide of collapse element
-        $(".collapse").on('show.bs.collapse', function(){
-        	$(this).prev(".card-header").find(".fa").removeClass("fa-plus").addClass("fa-minus");
-        }).on('hide.bs.collapse', function(){
-        	$(this).prev(".card-header").find(".fa").removeClass("fa-minus").addClass("fa-plus");
-        });
-    });
-
-
     </script>
-
-
-
-    @if (Model != null)
-{
-    @foreach (var repoUrlAndDefaultBranch in Model.RepoUrlsAndDefaultBranch)
-    {
-        <script>
-                CheckRepo('@repoUrlAndDefaultBranch.RepoUri', '@repoUrlAndDefaultBranch.Branch');
-            </script>
-    }
 }
-
-
-}
-
-
-

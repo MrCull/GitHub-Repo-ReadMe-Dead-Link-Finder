@@ -27,24 +27,35 @@ public class GitHubActiveReposFinder : IRepoFinder
             throw new GitHubActiveReposFinderException("Cannot look for more than 999 Uris");
         }
 
-        int itemsPerPage = 100; // seems to be a maximum of 100 for GitHub
-        int pagesNeeded = (numberOfUris / itemsPerPage) + 1;
 
-        for (int page = 1; page <= pagesNeeded; page++)
+
+        while (hasMorePages)
         {
-
             searchRepositoriesRequest.PerPage = itemsPerPage;
             searchRepositoriesRequest.Page = page;
 
             SearchRepositoryResult result = _githubClient.Search.SearchRepo(searchRepositoriesRequest).Result;
 
-            repoSearchResult.AddRange(result.Items.Select(repo => new RepoSearchResult(new Uri(repo.HtmlUrl), repo.DefaultBranch, repo.StargazersCount)));
 
+            // If fetching all, continue until we get a page with fewer than 100 items
+            if (fetchAll)
+            {
+                hasMorePages = result.Items.Count == itemsPerPage;
+                page++;
+            }
+            else
+            {
+                // Otherwise, stop when we have enough
+                hasMorePages = repoSearchResult.Count < numberOfUris && result.Items.Count == itemsPerPage;
+                if (hasMorePages)
+                {
+                    page++;
+                }
+            }
         }
 
         return repoSearchResult
             .Distinct()
-            .Take(numberOfUris);
     }
 
     public void SetGitHubCredentials(Credentials credential)
