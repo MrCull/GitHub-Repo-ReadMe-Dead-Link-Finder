@@ -42,29 +42,6 @@ The console application runs as a batch process and can find repositories with b
 
 3. **Results**: Broken link information is saved to a file for manual review and reporting
 
-## Installation
-
-### Prerequisites
-
-- .NET SDK (version specified in project files)
-- GitHub account (optional, for Personal Access Token)
-
-### Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/GitHub-Repo-ReadMe-Dead-Link-Finder.git
-
-# Navigate to the project directory
-cd GitHub-Repo-ReadMe-Dead-Link-Finder
-
-# Build the project
-dotnet build
-
-# Run the console application
-dotnet run
-```
-
 ## Configuration
 
 ### GitHub API Rate Limits
@@ -111,7 +88,6 @@ Contributions are welcome! Here's how you can help:
 Other excellent tools for checking broken links via GitHub Actions:
 
 - [Markdown Link Check](https://github.com/marketplace/actions/markdown-link-check)
-- [Link Checker](https://github.com/marketplace/actions/link-checker)
 
 ## License
 
