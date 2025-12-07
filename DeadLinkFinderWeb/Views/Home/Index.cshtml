@@ -366,8 +366,17 @@
             const description = repo.description || '';
             const topics = repo.topics || [];
 
-            // Default selected tab
-            selectedTabs[repoId] = 'broken';
+            const existingLinks = window['repoLinks_' + repoId];
+            const hasExisting = !!existingLinks;
+            const brokenCount = hasExisting ? (existingLinks.broken?.length || 0) : null;
+            const warningCount = hasExisting ? (existingLinks.warning?.length || 0) : null;
+            const okCount = hasExisting ? (existingLinks.ok?.length || 0) : null;
+
+            // Preserve previously selected tab if present
+            if (!selectedTabs[repoId]) {
+                selectedTabs[repoId] = 'broken';
+            }
+            const currentTab = selectedTabs[repoId];
 
             const cardHtml = `
                 <div class="repo-card" id="repo-card-${repoId}" data-repo-url="${repo.url}">
@@ -404,24 +413,24 @@
                         </div>
                         <div class="repo-updated">
                             ${updatedAtText}
-                            <span class="repo-checking-badge" id="checking-${repoId}">
+                            <span class="repo-checking-badge" id="checking-${repoId}" ${hasExisting ? 'style="display:none;"' : ''}>
                                 <span class="mini-spinner"></span> Checking links...
                             </span>
                         </div>
                         <div class="repo-link-status" id="link-counts-${repoId}">
                             <div class="repo-tabs" id="tabs-${repoId}">
-                                <button class="repo-tab active" data-repo-id="${repoId}" data-status="broken">
-                                    Broken links (<span class="mini-spinner"></span>)
+                                <button class="repo-tab ${currentTab === 'broken' ? 'active' : ''}" data-repo-id="${repoId}" data-status="broken">
+                                    Broken links (${hasExisting ? brokenCount : '<span class="mini-spinner"></span>'})
                                 </button>
-                                <button class="repo-tab" data-repo-id="${repoId}" data-status="warning">
-                                    Links with Warnings (<span class="mini-spinner"></span>)
+                                <button class="repo-tab ${currentTab === 'warning' ? 'active' : ''}" data-repo-id="${repoId}" data-status="warning">
+                                    Links with Warnings (${hasExisting ? warningCount : '<span class="mini-spinner"></span>'})
                                 </button>
-                                <button class="repo-tab" data-repo-id="${repoId}" data-status="ok">
-                                    Working links (<span class="mini-spinner"></span>)
+                                <button class="repo-tab ${currentTab === 'ok' ? 'active' : ''}" data-repo-id="${repoId}" data-status="ok">
+                                    Working links (${hasExisting ? okCount : '<span class="mini-spinner"></span>'})
                                 </button>
                             </div>
                             <div class="repo-tab-content" id="tab-content-${repoId}">
-                                <div class="tab-empty-state">Checking links...</div>
+                                ${hasExisting ? buildTabContent(repoId, currentTab) : '<div class="tab-empty-state">Checking links...</div>'}
                             </div>
                         </div>
                     </div>
