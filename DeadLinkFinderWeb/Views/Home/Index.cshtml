@@ -366,6 +366,9 @@
             const description = repo.description || '';
             const topics = repo.topics || [];
 
+            // Default selected tab
+            selectedTabs[repoId] = 'broken';
+
             const cardHtml = `
                 <div class="repo-card" id="repo-card-${repoId}" data-repo-url="${repo.url}">
                     <div class="repo-main">
@@ -399,8 +402,28 @@
                                 ${forks}
                             </span>
                         </div>
-                        ${updatedAtText ? `<div class="repo-updated">${updatedAtText}</div>` : ''}
-                        <div class="repo-link-status" id="link-counts-${repoId}"></div>
+                        <div class="repo-updated">
+                            ${updatedAtText}
+                            <span class="repo-checking-badge" id="checking-${repoId}">
+                                <span class="mini-spinner"></span> Checking links...
+                            </span>
+                        </div>
+                        <div class="repo-link-status" id="link-counts-${repoId}">
+                            <div class="repo-tabs" id="tabs-${repoId}">
+                                <button class="repo-tab active" data-repo-id="${repoId}" data-status="broken">
+                                    Broken links (<span class="mini-spinner"></span>)
+                                </button>
+                                <button class="repo-tab" data-repo-id="${repoId}" data-status="warning">
+                                    Links with Warnings (<span class="mini-spinner"></span>)
+                                </button>
+                                <button class="repo-tab" data-repo-id="${repoId}" data-status="ok">
+                                    Working links (<span class="mini-spinner"></span>)
+                                </button>
+                            </div>
+                            <div class="repo-tab-content" id="tab-content-${repoId}">
+                                <div class="tab-empty-state">Checking links...</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -458,34 +481,17 @@
                 broken: badLinks
             };
 
-            // Always show all three tabs, always default to "broken"
-            const allTabs = [
-                { status: 'broken', label: 'Broken links', count: bad },
-                { status: 'warning', label: 'Links with Warnings', count: warning },
-                { status: 'ok', label: 'Working links', count: ok }
-            ];
+            // Update tab labels with real counts
+            $(`#tabs-${repoId} .repo-tab[data-status="broken"]`).html(`Broken links (${bad})`);
+            $(`#tabs-${repoId} .repo-tab[data-status="warning"]`).html(`Links with Warnings (${warning})`);
+            $(`#tabs-${repoId} .repo-tab[data-status="ok"]`).html(`Working links (${ok})`);
 
-            // Always default to broken tab
-            const defaultTab = 'broken';
-            selectedTabs[repoId] = defaultTab;
+            // Hide checking indicator at repo level
+            $(`#checking-${repoId}`).hide();
 
-            // Build tabs HTML - always show all 3 tabs
-            let tabsHtml = '<div class="repo-tabs" id="tabs-' + repoId + '">';
-            allTabs.forEach(function(tab) {
-                const activeClass = tab.status === defaultTab ? ' active' : '';
-                tabsHtml += `<button class="repo-tab${activeClass}" data-repo-id="${repoId}" data-status="${tab.status}" onclick="switchRepoTab('${repoId}', '${tab.status}')">
-                    ${tab.label} (${tab.count})
-                </button>`;
-            });
-            tabsHtml += '</div>';
-
-            // Build initial tab content
-            tabsHtml += '<div class="repo-tab-content" id="tab-content-' + repoId + '">';
-            tabsHtml += buildTabContent(repoId, defaultTab);
-            tabsHtml += '</div>';
-
-            // Replace the old badges with new tabs
-            $('#link-counts-' + repoId).replaceWith(tabsHtml);
+            // Refresh content for the currently selected tab
+            const currentTab = selectedTabs[repoId] || 'broken';
+            $('#tab-content-' + repoId).html(buildTabContent(repoId, currentTab));
             $('#link-details-' + repoId).hide();
         }
 
@@ -533,6 +539,15 @@
             // Update content
             $('#tab-content-' + repoId).html(buildTabContent(repoId, status));
         }
+
+        // Event delegation for tabs (keeps working after dynamic updates)
+        $(document).on('click', '.repo-tab', function(e) {
+            e.preventDefault();
+            const repoId = $(this).data('repo-id');
+            const status = $(this).data('status');
+            if (!repoId || !status) return;
+            switchRepoTab(repoId, status);
+        });
 
         function removeRepoCard(repoUrl) {
             const repoId = convertUriToValidId(repoUrl);
