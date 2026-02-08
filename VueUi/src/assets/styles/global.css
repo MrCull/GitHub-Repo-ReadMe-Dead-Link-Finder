@@ -1,0 +1,181 @@
+:root {
+  --gh-bg: #f6f8fa;
+  --gh-surface: #ffffff;
+  --gh-border: #d0d7de;
+  --gh-border-subtle: #eaeef2;
+  --gh-text: #24292f;
+  --gh-muted: #57606a;
+  --gh-accent: #0969da;
+  --gh-accent-hover: #0756b3;
+  --gh-header-bg: #24292f;
+  --gh-header-text: #ffffff;
+  --gh-success: #1a7f37;
+  --gh-warning: #b08800;
+  --gh-danger: #cf222e;
+  --shadow: 0 1px 3px rgba(27, 31, 36, 0.12);
+  --shadow-strong: 0 8px 24px rgba(140, 149, 159, 0.2);
+  --radius: 6px;
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--gh-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to content link for accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--gh-bg);
+  color: var(--gh-text);
+  font-family: var(--font-stack);
+}
+
+a {
+  color: var(--gh-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.gh-main {
+  flex: 1;
+  display: block;
+}
+
+@keyframes gh-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mini-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #d0d7de;
+  border-top-color: #0969da;
+  border-radius: 50%;
+  animation: gh-spin 1s linear infinite;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+/* ===== Transitions ===== */
+
+/* Fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Fade + Slide Up */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* List stagger */
+.list-enter-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.list-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.list-move {
+  transition: transform 0.3s ease;
+}
+
+/* Tab content crossfade */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.tab-fade-enter-from,
+.tab-fade-leave-to {
+  opacity: 0;
+}
+
+/* ===== Skeleton shimmer ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* ===== Scrollbar styling ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c8cf;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8b949e;
+}
