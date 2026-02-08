@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +18,25 @@
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
+  <!-- Build Vue SPA before ASP.NET build (only in Release mode) -->
+  <Target Name="BuildVueSPA" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Message Text="Installing Vue dependencies..." Importance="high" />
+    <Exec Command="npm install" WorkingDirectory="..\VueUi" />
+    
+    <Message Text="Building Vue SPA..." Importance="high" />
+    <Exec Command="npm run build" WorkingDirectory="..\VueUi" />
+  </Target>
 
+  <!-- Ensure Vue build files are included in publish -->
+  <Target Name="PublishVueSPA" BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <DistFiles Include="wwwroot\**" />
+      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
 </Project>

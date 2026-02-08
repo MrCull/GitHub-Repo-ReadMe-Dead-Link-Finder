@@ -1,0 +1,36 @@
+const languageColors: Record<string, string> = {
+  'C#': '#178600',
+  'TypeScript': '#3178c6',
+  'JavaScript': '#f1e05a',
+  'HTML': '#e34c26',
+  'CSS': '#563d7c',
+  'Python': '#3572A5',
+  'Go': '#00ADD8',
+  'Vue': '#41b883',
+  'Java': '#b07219',
+  'Ruby': '#701516',
+  'PHP': '#4F5D95',
+  'Swift': '#F05138',
+  'Kotlin': '#A97BFF',
+  'Rust': '#dea584',
+  'Dart': '#00B4AB',
+  'Shell': '#89e051',
+  'C': '#555555',
+  'C++': '#f34b7d',
+  'Scala': '#c22d40',
+  'Haskell': '#5e5086',
+  'Lua': '#000080',
+  'R': '#198CE7',
+  'Objective-C': '#438eff',
+  'Perl': '#0298c3',
+  'PowerShell': '#012456',
+  'Dockerfile': '#384d54',
+  'Makefile': '#427819',
+  'SCSS': '#c6538c',
+  'Jupyter Notebook': '#DA5B0B',
+  'Code': '#6e7781',
+}
+
+export function getLanguageColor(language: string): string {
+  return languageColors[language] || '#6e7781'
+}
