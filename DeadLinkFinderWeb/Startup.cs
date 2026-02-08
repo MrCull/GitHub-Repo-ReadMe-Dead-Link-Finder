@@ -69,9 +69,19 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            // Map specific API/MVC routes (no default for root)
             endpoints.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                name: "api",
+                pattern: "{controller}/{action}/{id?}");
+            
+            // Legacy MVC views accessible at /legacy prefix if needed
+            endpoints.MapControllerRoute(
+                name: "legacy",
+                pattern: "legacy/{controller=Home}/{action=Index}/{id?}");
+            
+            // SPA fallback - serve index.html for all other routes including root
+            // This allows Vue Router to handle client-side routing
+            endpoints.MapFallbackToFile("index.html");
         });
     }
 }
